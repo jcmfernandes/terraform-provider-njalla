@@ -85,21 +85,18 @@ func resourceRecordDynamicRead(
 
 	var diags diag.Diagnostics
 
-	records, err := config.Client.ListRecords(ctx, domain)
+	record, err := findRecord(ctx, config.Client, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	for _, record := range records {
-		if d.Id() == record.ID {
-			d.Set("name", record.Name)
-			d.Set("key", record.Content)
-
-			return diags
-		}
+	if record == nil {
+		d.SetId("")
+		return diags
 	}
 
-	d.SetId("")
+	d.Set("name", record.Name)
+	d.Set("key", record.Content)
+
 	return diags
 }
 
@@ -129,23 +126,20 @@ func resourceRecordDynamicImport(
 
 	config := m.(*Config)
 
-	records, err := config.Client.ListRecords(ctx, domain)
+	record, err := findRecord(ctx, config.Client, domain, id)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading records for domain %s failed: %s", domain, err.Error(),
 		)
 	}
-
-	for _, record := range records {
-		if id == record.ID {
-			d.SetId(id)
-			d.Set("domain", domain)
-			d.Set("name", record.Name)
-			d.Set("key", record.Content)
-
-			return []*schema.ResourceData{d}, nil
-		}
+	if record == nil {
+		return nil, fmt.Errorf("Couldn't find record %s for domain %s", id, domain)
 	}
 
-	return nil, fmt.Errorf("Couldn't find record %s for domain %s", id, domain)
+	d.SetId(id)
+	d.Set("domain", domain)
+	d.Set("name", record.Name)
+	d.Set("key", record.Content)
+
+	return []*schema.ResourceData{d}, nil
 }
