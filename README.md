@@ -117,6 +117,9 @@ export NJALLA_TESTACC_DOMAIN="testdomain.com"
 TF_ACC=true go test -v ./...
 ```
 
+[mise][] pins Go, Terraform and GoReleaser in `mise.toml`, and wraps the above
+as tasks: `mise run build`, `mise run test`, `mise run testacc`.
+
 ### Releasing
 
 There's a [Github Action set up to handle releases][Action Release] on tag
@@ -149,4 +152,5 @@ configured GPG key.
 [Action Release]: .github/workflows/release.yml
 [terraform-provider-njalla releases]: https://github.com/Sighery/terraform-provider-njalla/releases
 [GoReleaser]: https://goreleaser.com/
+[mise]: https://mise.jdx.dev
 [provider signing key documentation]: https://www.terraform.io/docs/registry/providers/publishing.html#preparing-and-adding-a-signing-key
