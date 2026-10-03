@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/Sighery/gonjalla"
 )
@@ -16,9 +16,9 @@ func TestAccRecordTLSA_Create(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordTLSACreate(),
@@ -52,9 +52,9 @@ func TestAccRecordTLSA_Update(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordTLSAUpdatePre(),
@@ -112,9 +112,9 @@ func TestAccRecordTLSA_Import(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordTLSAImport(),
@@ -139,9 +139,9 @@ func TestAccRecordTLSA_EmptyName(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordTLSAEmptyName(),
@@ -173,9 +173,9 @@ func TestAccRecordTLSA_InvalidTTL(t *testing.T) {
 	expectedErr := regexp.MustCompile("expected ttl to be one of .+, got 999")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordTLSAInvalidTTL(),
@@ -191,9 +191,9 @@ func TestAccRecordTLSA_InvalidContent(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordTLSAInvalidContent(),
@@ -209,9 +209,9 @@ func TestAccRecordTLSA_StringCertificateUsage(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordTLSAStringCertificateUsage(),
@@ -227,9 +227,9 @@ func TestAccRecordTLSA_InvalidIntCertificateUsage(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordTLSAInvalidIntCertificateUsage(),
@@ -245,9 +245,9 @@ func TestAccRecordTLSA_StringSelector(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordTLSAStringSelector(),
@@ -263,9 +263,9 @@ func TestAccRecordTLSA_InvalidIntSelector(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordTLSAInvalidIntSelector(),
@@ -281,9 +281,9 @@ func TestAccRecordTLSA_StringMatchingType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordTLSAStringMatchingType(),
@@ -299,9 +299,9 @@ func TestAccRecordTLSA_InvalidIntMatchingType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordTLSADestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordTLSADestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordTLSAInvalidIntMatchingType(),

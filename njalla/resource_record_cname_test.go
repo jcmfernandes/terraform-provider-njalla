@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/Sighery/gonjalla"
 )
@@ -16,9 +16,9 @@ func TestAccRecordCNAME_Create(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordCNAMEDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordCNAMEDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordCNAMECreate(),
@@ -52,9 +52,9 @@ func TestAccRecordCNAME_Update(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordCNAMEDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordCNAMEDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordCNAMEUpdatePre(),
@@ -112,9 +112,9 @@ func TestAccRecordCNAME_Import(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordCNAMEDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordCNAMEDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordCNAMEImport(),
@@ -139,9 +139,9 @@ func TestAccRecordCNAME_EmptyName(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordCNAMEDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordCNAMEDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordCNAMEEmptyName(),
@@ -173,9 +173,9 @@ func TestAccRecordCNAME_InvalidTTL(t *testing.T) {
 	expectedErr := regexp.MustCompile("expected ttl to be one of .+, got 999")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordCNAMEDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordCNAMEDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordCNAMEInvalidTTL(),

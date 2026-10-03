@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/Sighery/gonjalla"
 )
@@ -16,9 +16,9 @@ func TestAccRecordPTR_Create(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordPTRDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordPTRDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordPTRCreate(),
@@ -52,9 +52,9 @@ func TestAccRecordPTR_Update(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordPTRDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordPTRDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordPTRUpdatePre(),
@@ -112,9 +112,9 @@ func TestAccRecordPTR_Import(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordPTRDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordPTRDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordPTRImport(),
@@ -139,9 +139,9 @@ func TestAccRecordPTR_EmptyName(t *testing.T) {
 	domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordPTRDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordPTRDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckRecordPTREmptyName(),
@@ -173,9 +173,9 @@ func TestAccRecordPTR_InvalidTTL(t *testing.T) {
 	expectedErr := regexp.MustCompile("expected ttl to be one of .+, got 999")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordPTRDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckRecordPTRDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckRecordPTRInvalidTTL(),
