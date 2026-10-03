@@ -1,4 +1,4 @@
-module github.com/Sighery/terraform-provider-njalla
+module github.com/jcmfernandes/terraform-provider-njalla
 
 go 1.27
 

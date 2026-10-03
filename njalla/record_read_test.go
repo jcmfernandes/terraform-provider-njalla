@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/Sighery/terraform-provider-njalla/internal/client"
+	"github.com/jcmfernandes/terraform-provider-njalla/internal/client"
 )
 
 // A record of another type with an unexpected shape must not stop Read from

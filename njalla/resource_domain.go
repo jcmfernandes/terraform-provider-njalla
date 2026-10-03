@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/terraform-provider-njalla/internal/client"
+	"github.com/jcmfernandes/terraform-provider-njalla/internal/client"
 )
 
 // domainInfo is a `list-domains`/`get-domain` entry.
