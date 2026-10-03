@@ -2,9 +2,13 @@ package njalla
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/jcmfernandes/terraform-provider-njalla/internal/client"
 )
 
 // Fields a record type doesn't use are left at their zero value.
@@ -53,13 +57,41 @@ func dataSourceRecordsRead(
 
 	domain := d.Get("domain").(string)
 
-	records, err := config.Client.ListRecords(ctx, domain)
+	data, err := config.Client.Request(
+		ctx, "list-records", map[string]any{"domain": domain},
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	result := make([]map[string]any, 0, len(records))
-	for _, r := range records {
+	var response struct {
+		Records []json.RawMessage `json:"records"`
+	}
+	if err := json.Unmarshal(data, &response); err != nil {
+		return diag.FromErr(err)
+	}
+
+	var diags diag.Diagnostics
+
+	// Decode entries one at a time, so a record with an unexpected shape is
+	// skipped instead of failing the whole listing.
+	result := make([]map[string]any, 0, len(response.Records))
+	for _, raw := range response.Records {
+		var r client.Record
+		if err := json.Unmarshal(raw, &r); err != nil {
+			// Only the ID: the record's content may be a DDNS key.
+			var ref struct {
+				ID any `json:"id"`
+			}
+			json.Unmarshal(raw, &ref)
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Skipped a record Njalla returned in an unexpected shape",
+				Detail:   fmt.Sprintf("Record %v: %s", ref.ID, err),
+			})
+			continue
+		}
+
 		result = append(result, map[string]any{
 			"id":            r.ID,
 			"name":          r.Name,
@@ -80,6 +112,5 @@ func dataSourceRecordsRead(
 		return diag.FromErr(err)
 	}
 
-	var diags diag.Diagnostics
 	return diags
 }

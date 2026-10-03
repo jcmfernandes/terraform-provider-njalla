@@ -116,3 +116,35 @@ func TestRecordImportRejectsOtherTypes(t *testing.T) {
 		})
 	}
 }
+
+// One malformed record must not stop the data source listing the others.
+func TestRecordsDataSourceSkipsMalformedRecords(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(`{"result": {"records": [
+				{"id": "1", "type": "SRV", "weight": "heavy"},
+				{"id": "2", "type": "A", "name": "n", "content": "1.2.3.4"}
+			]}}`))
+		},
+	))
+	t.Cleanup(server.Close)
+
+	c := client.New("secret")
+	c.Endpoint = server.URL
+	config := &Config{Client: c}
+	r := dataSourceRecords()
+
+	d := schema.TestResourceDataRaw(
+		t, r.Schema, map[string]any{"domain": "a.b"},
+	)
+	diags := r.ReadContext(context.Background(), d, config)
+	if diags.HasError() {
+		t.Fatalf("Read failed: %v", diags)
+	}
+	if len(diags) != 1 || !strings.Contains(diags[0].Detail, "1") {
+		t.Errorf("diags = %v, want one warning naming record 1", diags)
+	}
+	if n := d.Get("records.#").(int); n != 1 {
+		t.Errorf("records = %d, want 1", n)
+	}
+}
