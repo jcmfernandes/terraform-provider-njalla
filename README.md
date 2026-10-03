@@ -1,5 +1,8 @@
 # Unofficial Terraform Njalla Provider
 
+> [!IMPORTANT]  
+> This repository is a **hard fork** of https://github.com/Sighery/terraform-provider-njalla.  
+
 [Njalla][] is a privacy-oriented domain name registration service. Recently
 they released their [official API][Njalla API]. Following the release of their
 official API, I created an (for now extremely limited)
