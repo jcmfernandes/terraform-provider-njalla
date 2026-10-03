@@ -30,6 +30,12 @@ func Provider() *schema.Provider {
 			"njalla_record_tlsa":    resourceRecordTLSA(),
 			"njalla_record_naptr":   resourceRecordNAPTR(),
 			"njalla_record_dynamic": resourceRecordDynamic(),
+			"njalla_record_aname":   resourceRecordANAME(),
+			"njalla_record_srv":     resourceRecordSRV(),
+			"njalla_record_https":   resourceRecordHTTPS(),
+			"njalla_record_svcb":    resourceRecordSVCB(),
+			"njalla_record_sshfp":   resourceRecordSSHFP(),
+			"njalla_record_ds":      resourceRecordDS(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

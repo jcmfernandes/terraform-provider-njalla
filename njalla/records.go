@@ -1,0 +1,154 @@
+package njalla
+
+import (
+	"encoding/json"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/Sighery/gonjalla"
+)
+
+// gonjalla.Record lacks the fields of the newer record types and always
+// serialises `content` and `ttl`, so these types build requests by hand.
+
+// record is a `list-records` entry, including the fields gonjalla.Record
+// doesn't know about.
+type record struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Type         string `json:"type"`
+	Content      string `json:"content"`
+	TTL          int    `json:"ttl"`
+	Priority     int    `json:"prio"`
+	Weight       int    `json:"weight"`
+	Port         int    `json:"port"`
+	Target       string `json:"target"`
+	SSHAlgorithm int    `json:"ssh_algorithm"`
+	SSHType      int    `json:"ssh_type"`
+}
+
+// recordFields lists the attributes each record type sends besides
+// `domain`, `type` and `name`, following the per-type rules of add-record.
+var recordFields = map[string][]string{
+	"ANAME": {"content", "ttl"},
+	"DS":    {"content", "ttl"},
+	"HTTPS": {"priority", "target"},
+	"SRV":   {"content", "ttl", "priority", "weight", "port"},
+	"SSHFP": {"content", "ttl", "ssh_algorithm", "ssh_type"},
+	"SVCB":  {"priority", "target"},
+}
+
+// recordParam maps an attribute to its API parameter name.
+func recordParam(attr string) string {
+	if attr == "priority" {
+		return "prio"
+	}
+	return attr
+}
+
+func (r record) value(attr string) any {
+	switch attr {
+	case "content":
+		return r.Content
+	case "ttl":
+		return r.TTL
+	case "priority":
+		return r.Priority
+	case "weight":
+		return r.Weight
+	case "port":
+		return r.Port
+	case "target":
+		return r.Target
+	case "ssh_algorithm":
+		return r.SSHAlgorithm
+	case "ssh_type":
+		return r.SSHType
+	}
+	return nil
+}
+
+// recordParams builds the add-record/edit-record params for the given type.
+// `id` is only included once the record exists.
+func recordParams(recordType string, d *schema.ResourceData) map[string]any {
+	params := map[string]any{
+		"domain": d.Get("domain").(string),
+		"type":   recordType,
+		"name":   d.Get("name").(string),
+	}
+	if d.Id() != "" {
+		params["id"] = d.Id()
+	}
+	for _, attr := range recordFields[recordType] {
+		params[recordParam(attr)] = d.Get(attr)
+	}
+	return params
+}
+
+func createRecord(token string, recordType string, d *schema.ResourceData) error {
+	data, err := gonjalla.Request(
+		token, "add-record", recordParams(recordType, d),
+	)
+	if err != nil {
+		return err
+	}
+
+	var saved record
+	if err := json.Unmarshal(data, &saved); err != nil {
+		return err
+	}
+
+	d.SetId(saved.ID)
+	return nil
+}
+
+func updateRecord(token string, recordType string, d *schema.ResourceData) error {
+	_, err := gonjalla.Request(
+		token, "edit-record", recordParams(recordType, d),
+	)
+	return err
+}
+
+// findRecord returns the record with the given ID, or nil if it's gone.
+// Entries are decoded one at a time, so a record of another type with an
+// unexpected shape can't break the lookup.
+func findRecord(token string, domain string, id string) (*record, error) {
+	data, err := gonjalla.Request(
+		token, "list-records", map[string]any{"domain": domain},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		Records []json.RawMessage `json:"records"`
+	}
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, err
+	}
+
+	for _, raw := range response.Records {
+		var ref struct {
+			ID string `json:"id"`
+		}
+		if json.Unmarshal(raw, &ref) != nil || ref.ID != id {
+			continue
+		}
+
+		var found record
+		if err := json.Unmarshal(raw, &found); err != nil {
+			return nil, err
+		}
+		return &found, nil
+	}
+
+	return nil, nil
+}
+
+// setRecord copies the fields of the given type from a record into state.
+func setRecord(recordType string, d *schema.ResourceData, r *record) {
+	d.Set("name", r.Name)
+	for _, attr := range recordFields[recordType] {
+		d.Set(attr, r.value(attr))
+	}
+}
