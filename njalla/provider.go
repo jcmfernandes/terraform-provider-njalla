@@ -44,6 +44,16 @@ func Provider() *schema.Provider {
 			"njalla_server":         resourceServer(),
 			"njalla_vpn":            resourceVPN(),
 		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"njalla_domains":       dataSourceDomains(),
+			"njalla_domain":        dataSourceDomain(),
+			"njalla_records":       dataSourceRecords(),
+			"njalla_server_types":  dataSourceServerTypes(),
+			"njalla_server_images": dataSourceServerImages(),
+			"njalla_servers":       dataSourceServers(),
+			"njalla_tlds":          dataSourceTLDs(),
+			"njalla_vpns":          dataSourceVPNs(),
+		},
 		ConfigureContextFunc: providerConfigure,
 	}
 }
