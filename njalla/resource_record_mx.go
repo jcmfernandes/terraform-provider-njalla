@@ -28,7 +28,7 @@ func resourceRecordMX() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				DefaultFunc: func() (interface{}, error) {
+				DefaultFunc: func() (any, error) {
 					return "@", nil
 				},
 				Description: "Name for the record.",
@@ -59,7 +59,7 @@ func resourceRecordMX() *schema.Resource {
 }
 
 func resourceRecordMXCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -86,7 +86,7 @@ func resourceRecordMXCreate(
 }
 
 func resourceRecordMXRead(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -115,7 +115,7 @@ func resourceRecordMXRead(
 }
 
 func resourceRecordMXUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -140,7 +140,7 @@ func resourceRecordMXUpdate(
 }
 
 func resourceRecordMXDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -156,7 +156,7 @@ func resourceRecordMXDelete(
 }
 
 func resourceRecordMXImport(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) ([]*schema.ResourceData, error) {
 	domain, id, err := parseImportID(d.Id())
 	if err != nil {

@@ -28,7 +28,7 @@ func resourceRecordPTR() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				DefaultFunc: func() (interface{}, error) {
+				DefaultFunc: func() (any, error) {
 					return "@", nil
 				},
 				Description: "Name for the record.",
@@ -53,7 +53,7 @@ func resourceRecordPTR() *schema.Resource {
 }
 
 func resourceRecordPTRCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -78,7 +78,7 @@ func resourceRecordPTRCreate(
 }
 
 func resourceRecordPTRRead(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -106,7 +106,7 @@ func resourceRecordPTRRead(
 }
 
 func resourceRecordPTRUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -129,7 +129,7 @@ func resourceRecordPTRUpdate(
 }
 
 func resourceRecordPTRDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -145,7 +145,7 @@ func resourceRecordPTRDelete(
 }
 
 func resourceRecordPTRImport(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) ([]*schema.ResourceData, error) {
 	domain, id, err := parseImportID(d.Id())
 	if err != nil {

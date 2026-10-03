@@ -34,7 +34,7 @@ func resourceRecordCAA() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				DefaultFunc: func() (interface{}, error) {
+				DefaultFunc: func() (any, error) {
 					return "@", nil
 				},
 				Description: "Name for the record.",
@@ -54,7 +54,7 @@ func resourceRecordCAA() *schema.Resource {
 						contentRegex,
 						"value must follow RFC 8659: point 4 for syntax",
 					),
-					func(val interface{}, key string) (warns []string, errs []error) {
+					func(val any, key string) (warns []string, errs []error) {
 						v := val.(string)
 						r := regexp.MustCompile(`^(\d{1,3})\s+`)
 						matches := r.FindStringSubmatch(v)
@@ -97,7 +97,7 @@ func resourceRecordCAA() *schema.Resource {
 }
 
 func resourceRecordCAACreate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -122,7 +122,7 @@ func resourceRecordCAACreate(
 }
 
 func resourceRecordCAARead(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -150,7 +150,7 @@ func resourceRecordCAARead(
 }
 
 func resourceRecordCAAUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -173,7 +173,7 @@ func resourceRecordCAAUpdate(
 }
 
 func resourceRecordCAADelete(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -189,7 +189,7 @@ func resourceRecordCAADelete(
 }
 
 func resourceRecordCAAImport(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) ([]*schema.ResourceData, error) {
 	domain, id, err := parseImportID(d.Id())
 	if err != nil {

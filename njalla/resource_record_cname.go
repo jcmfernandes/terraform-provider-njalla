@@ -28,7 +28,7 @@ func resourceRecordCNAME() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				DefaultFunc: func() (interface{}, error) {
+				DefaultFunc: func() (any, error) {
 					return "@", nil
 				},
 				Description: "Name for the record.",
@@ -53,7 +53,7 @@ func resourceRecordCNAME() *schema.Resource {
 }
 
 func resourceRecordCNAMECreate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -78,7 +78,7 @@ func resourceRecordCNAMECreate(
 }
 
 func resourceRecordCNAMERead(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -106,7 +106,7 @@ func resourceRecordCNAMERead(
 }
 
 func resourceRecordCNAMEUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -129,7 +129,7 @@ func resourceRecordCNAMEUpdate(
 }
 
 func resourceRecordCNAMEDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -145,7 +145,7 @@ func resourceRecordCNAMEDelete(
 }
 
 func resourceRecordCNAMEImport(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) ([]*schema.ResourceData, error) {
 	domain, id, err := parseImportID(d.Id())
 	if err != nil {

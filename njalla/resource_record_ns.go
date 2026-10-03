@@ -50,7 +50,7 @@ func resourceRecordNS() *schema.Resource {
 }
 
 func resourceRecordNSCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -75,7 +75,7 @@ func resourceRecordNSCreate(
 }
 
 func resourceRecordNSRead(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -103,7 +103,7 @@ func resourceRecordNSRead(
 }
 
 func resourceRecordNSUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -126,7 +126,7 @@ func resourceRecordNSUpdate(
 }
 
 func resourceRecordNSDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -142,7 +142,7 @@ func resourceRecordNSDelete(
 }
 
 func resourceRecordNSImport(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) ([]*schema.ResourceData, error) {
 	domain, id, err := parseImportID(d.Id())
 	if err != nil {

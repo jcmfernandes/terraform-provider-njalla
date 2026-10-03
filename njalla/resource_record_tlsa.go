@@ -30,7 +30,7 @@ func resourceRecordTLSA() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				DefaultFunc: func() (interface{}, error) {
+				DefaultFunc: func() (any, error) {
 					return "@", nil
 				},
 				Description: "Name for the record.",
@@ -56,7 +56,7 @@ func resourceRecordTLSA() *schema.Resource {
 }
 
 func resourceRecordTLSACreate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -81,7 +81,7 @@ func resourceRecordTLSACreate(
 }
 
 func resourceRecordTLSARead(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -109,7 +109,7 @@ func resourceRecordTLSARead(
 }
 
 func resourceRecordTLSAUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -132,7 +132,7 @@ func resourceRecordTLSAUpdate(
 }
 
 func resourceRecordTLSADelete(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -148,7 +148,7 @@ func resourceRecordTLSADelete(
 }
 
 func resourceRecordTLSAImport(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) ([]*schema.ResourceData, error) {
 	domain, id, err := parseImportID(d.Id())
 	if err != nil {
@@ -184,7 +184,7 @@ func resourceRecordTLSAImport(
 // some heavy reading, check RFC 6698 points 2 and 7:
 // https://tools.ietf.org/html/rfc6698
 func validateTLSAContent(
-	val interface{}, key string,
+	val any, key string,
 ) (warns []string, errs []error) {
 	v := val.(string)
 	values := strings.Split(v, " ")

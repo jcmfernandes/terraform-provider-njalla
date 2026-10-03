@@ -28,7 +28,7 @@ func resourceRecordTXT() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				DefaultFunc: func() (interface{}, error) {
+				DefaultFunc: func() (any, error) {
 					return "@", nil
 				},
 				Description: "Name for the record.",
@@ -53,7 +53,7 @@ func resourceRecordTXT() *schema.Resource {
 }
 
 func resourceRecordTXTCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -78,7 +78,7 @@ func resourceRecordTXTCreate(
 }
 
 func resourceRecordTXTRead(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -106,7 +106,7 @@ func resourceRecordTXTRead(
 }
 
 func resourceRecordTXTUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -129,7 +129,7 @@ func resourceRecordTXTUpdate(
 }
 
 func resourceRecordTXTDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -145,7 +145,7 @@ func resourceRecordTXTDelete(
 }
 
 func resourceRecordTXTImport(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) ([]*schema.ResourceData, error) {
 	domain, id, err := parseImportID(d.Id())
 	if err != nil {

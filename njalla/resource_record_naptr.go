@@ -30,7 +30,7 @@ func resourceRecordNAPTR() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				DefaultFunc: func() (interface{}, error) {
+				DefaultFunc: func() (any, error) {
 					return "@", nil
 				},
 				Description: "Name for the record.",
@@ -56,7 +56,7 @@ func resourceRecordNAPTR() *schema.Resource {
 }
 
 func resourceRecordNAPTRCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -81,7 +81,7 @@ func resourceRecordNAPTRCreate(
 }
 
 func resourceRecordNAPTRRead(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -109,7 +109,7 @@ func resourceRecordNAPTRRead(
 }
 
 func resourceRecordNAPTRUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -132,7 +132,7 @@ func resourceRecordNAPTRUpdate(
 }
 
 func resourceRecordNAPTRDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
 	config := m.(*Config)
 
@@ -148,7 +148,7 @@ func resourceRecordNAPTRDelete(
 }
 
 func resourceRecordNAPTRImport(
-	ctx context.Context, d *schema.ResourceData, m interface{},
+	ctx context.Context, d *schema.ResourceData, m any,
 ) ([]*schema.ResourceData, error) {
 	domain, id, err := parseImportID(d.Id())
 	if err != nil {
@@ -184,7 +184,7 @@ func resourceRecordNAPTRImport(
 // some heavy reading, check RFC 2915 section 2:
 // https://tools.ietf.org/html/rfc2915
 func validateNAPTRContent(
-	val interface{}, key string,
+	val any, key string,
 ) (warns []string, errs []error) {
 	v := val.(string)
 	values := strings.Split(v, " ")
