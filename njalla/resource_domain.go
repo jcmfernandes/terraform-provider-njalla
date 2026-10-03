@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -228,12 +229,35 @@ func resourceDomainRead(
 	d.Set("mailforwarding", domain.Mailforwarding)
 	d.Set("dnssec", domain.DNSSEC)
 	d.Set("lock", domain.Locked)
-	d.Set("nameservers", domain.Nameservers)
+	d.Set("nameservers", customNameservers(domain.Nameservers))
 	d.Set("status", domain.Status)
 	d.Set("expiry", domain.Expiry)
 	d.Set("max_nameservers", domain.MaxNameservers)
 
 	return diags
+}
+
+// njallaNameserverDomains are the domains Njalla's own nameservers live
+// under, e.g. 1-you.njalla.no.
+var njallaNameserverDomains = []string{"njalla.no", "njalla.in", "njalla.fo"}
+
+// customNameservers returns the nameservers as configured: empty when
+// Njalla reports only its own, which is what an empty list asks for.
+func customNameservers(reported []string) []string {
+	for _, ns := range reported {
+		ns = strings.TrimSuffix(strings.ToLower(ns), ".")
+		own := false
+		for _, domain := range njallaNameserverDomains {
+			if strings.HasSuffix(ns, "."+domain) {
+				own = true
+				break
+			}
+		}
+		if !own {
+			return reported
+		}
+	}
+	return []string{}
 }
 
 func resourceDomainUpdate(
