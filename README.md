@@ -78,9 +78,7 @@ the case. Any acceptance tests after the development/testing phase is over
 should not ever leave dangling resources. Please do test extensively before
 making a pull request.
 
-The [test workflow][Action Test] runs unit and acceptance tests on every
-push, using the repository secrets `NJALLA_API_TOKEN` and
-`NJALLA_TESTACC_DOMAIN`.
+CI doesn't run the tests; run them locally before pushing.
 
 Acceptance tests only run when `TF_ACC` is set, and need two more environment
 variables:
@@ -133,7 +131,6 @@ through its [submission forms][OpenTofu registry submission].
 [`provider.go`]: njalla/provider.go
 [Terraform provider acceptance tests documentation]: https://developer.hashicorp.com/terraform/plugin/sdkv2/testing/acceptance-tests
 [Terraform provider acceptance tests article]: https://medium.com/spaceapetech/creating-a-terraform-provider-part-2-1346f89f082c
-[Action Test]: .github/workflows/test.yml
 [Action Release]: .github/workflows/release.yml
 [GoReleaser]: https://goreleaser.com/
 [mise]: https://mise.jdx.dev
