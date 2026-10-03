@@ -1,4 +1,4 @@
-# Unofficial Terraform Njalla Provider
+# Unofficial Njalla Provider for OpenTofu and Terraform
 
 > [!IMPORTANT]  
 > This repository is a **hard fork** of https://github.com/Sighery/terraform-provider-njalla.  
@@ -6,42 +6,33 @@
 [Njalla][] is a privacy-oriented domain name registration service, with an
 [official API][Njalla API].
 
-This repository is the unofficial Terraform provider for the Njalla API. It
-talks to the API through its own small client in [`internal/client`][].
+This repository is an unofficial OpenTofu/Terraform provider for the Njalla
+API. It manages DNS records, domains, glue and DNSSEC records, email forwards,
+API tokens, servers and VPNs, and reads them through data sources. It talks to
+the API through its own small client in [`internal/client`][].
 
 ---
 
 ## Installing
 
-Starting from Terraform v0.13, there's now a
-[registry for providers][Terraform providers registry], where 
-[this provider gets uploaded to][Sighery/njalla registry]. To use in your
-Terraform project:
+Releases are published to the [OpenTofu registry][]:
 
-```terraform
+```hcl
 terraform {
-  required_version = ">= 0.13"
-
   required_providers {
     njalla = {
-      source  = "Sighery/njalla"
-      version = "~> 0.10.0"
+      source = "jcmfernandes/njalla"
     }
   }
 }
 ```
 
-With this, Terraform will now take care of finding the relevant provider in
-the registry, and download it. After that, it can be configured
-(`provider njalla {}` block) and used throughout the project.
-
+Configure it with a `provider njalla {}` block; see the [documentation][].
 
 ## Documentation
 
-The documentation is
-[rendered online in the Terraform Registry][rendered documentation], generated
-from the files in the [`docs/`][] directory, where you can render the Markdown
-files locally to read them as well.
+The Markdown files in [`docs/`][] document the provider configuration, every
+resource and every data source.
 
 ---
 
@@ -55,8 +46,9 @@ how to add new resources to the provider.
 
 Add any new resources inside the `njalla` package. The file name must follow
 this format: `resource_{type}`. In the case of our `njalla_record_txt`
-resource, the file is then called [`resource_record_txt.go`][]. Take a look at
-any of the existing resources, and how they're linked in [`provider.go`][].
+resource, the file is then called [`resource_record_txt.go`][]. Data sources
+follow `data_source_{type}`. Take a look at any of the existing resources, and
+how they're linked in [`provider.go`][].
 
 You'll have to implement the basic `CRUD` operations, and if possible, **do
 implement importing as well**.
@@ -86,33 +78,27 @@ the case. Any acceptance tests after the development/testing phase is over
 should not ever leave dangling resources. Please do test extensively before
 making a pull request.
 
-In this repository
-[I have GitHub Action set up to run acceptance and unit tests][Action Test].
-This action makes use of Action Secrets with a given Njalla API token and a
-test domain I've set up to run these acceptance tests.
+The [test workflow][Action Test] runs unit and acceptance tests on every
+push, using the repository secrets `NJALLA_API_TOKEN` and
+`NJALLA_TESTACC_DOMAIN`.
 
-Acceptance tests still use Golang's testing functionality, which can be run by
-executing:
-
-```bash
-go test -v ./...
-```
-
-However, when doing this, you might notice that Terraform's acceptance tests
-are simply being skipped. This is because Terraform's SDK requires the
-environment variable `TF_ACC` to be set to `true` to run acceptance tests.
-
-This provider requires another two environment variables set to run acceptance
-tests:
+Acceptance tests only run when `TF_ACC` is set, and need two more environment
+variables:
 
 * `NJALLA_API_TOKEN`: Njalla API token used to call the API during tests.
 * `NJALLA_TESTACC_DOMAIN`: Njalla domain used during the tests.
 
+[mise][] pins Go, OpenTofu and GoReleaser in `mise.toml`. Its `testacc` task
+sets `TF_ACC` and runs the tests against OpenTofu:
+
 ```bash
 export NJALLA_API_TOKEN="api-token-here"
 export NJALLA_TESTACC_DOMAIN="testdomain.com"
-TF_ACC=true go test -v ./...
+mise run testacc
 ```
+
+`mise run test` runs only the unit tests, and `mise run build` builds the
+provider.
 
 Two more environment variables opt into tests that are skipped by default:
 
@@ -123,9 +109,6 @@ Two more environment variables opt into tests that are skipped by default:
   `NJALLA_TESTACC_DOMAIN`. A record left behind by a failed run breaks
   resolution of the domain.
 
-[mise][] pins Go, OpenTofu and GoReleaser in `mise.toml`, and wraps the above
-as tasks: `mise run build`, `mise run test`, `mise run testacc`.
-
 ### Releasing
 
 There's a [Github Action set up to handle releases][Action Release] on tag
@@ -133,30 +116,25 @@ pushes. This action then makes use of [GoReleaser][] to cross-compile to
 different platforms. GoReleaser is also used to create a checksums file, and
 create a new draft GitHub release.
 
-From there, I'll download the checksums file, sign it with the GPG key linked
-to this provider, and upload the signature file back into the release before
-publishing it. Once published, the Registry website picks up the new release
-automatically.
+Before publishing the draft, sign the checksums file with the provider's GPG
+key and upload the signature to the release. The OpenTofu registry picks up
+published releases automatically, and rejects any without a valid signature.
 
-All providers in the registry must have a linked GPG key, and all the releases
-for that provider must contain a signature file of the checksum signed by that
-configured GPG key.
-[More information here][provider signing key documentation].
+The provider and its GPG key are registered with the OpenTofu registry once,
+through its [submission forms][OpenTofu registry submission].
 
 [Njalla]: https://njal.la
 [Njalla API]: https://njal.la/api/
 [`internal/client`]: internal/client/
-[Terraform providers registry]: https://registry.terraform.io/browse/providers
-[Sighery/njalla registry]: https://registry.terraform.io/providers/Sighery/njalla
-[rendered documentation]: https://registry.terraform.io/providers/Sighery/njalla/latest/docs
+[OpenTofu registry]: https://search.opentofu.org/
+[documentation]: docs/index.md
 [`docs/`]: docs/
 [`resource_record_txt.go`]: njalla/resource_record_txt.go
 [`provider.go`]: njalla/provider.go
-[Terraform provider acceptance tests documentation]: https://www.terraform.io/docs/extend/testing/acceptance-tests/index.html
+[Terraform provider acceptance tests documentation]: https://developer.hashicorp.com/terraform/plugin/sdkv2/testing/acceptance-tests
 [Terraform provider acceptance tests article]: https://medium.com/spaceapetech/creating-a-terraform-provider-part-2-1346f89f082c
 [Action Test]: .github/workflows/test.yml
 [Action Release]: .github/workflows/release.yml
-[terraform-provider-njalla releases]: https://github.com/Sighery/terraform-provider-njalla/releases
 [GoReleaser]: https://goreleaser.com/
 [mise]: https://mise.jdx.dev
-[provider signing key documentation]: https://www.terraform.io/docs/registry/providers/publishing.html#preparing-and-adding-a-signing-key
+[OpenTofu registry submission]: https://github.com/opentofu/registry#readme
