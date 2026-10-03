@@ -1,10 +1,11 @@
 # Njalla Provider
 
-The [Njalla][] provider is used to interact with some of the resources
+The [Njalla][] provider is used to interact with the resources
 supported by the [official Njalla API][Njalla API]. The provider needs to be
 configured with the proper credentials before it can be used.
 
-Use the navigation to the left to read about the available resources.
+Use the navigation to the left to read about the available resources and data
+sources.
 
 ## Example Usage
 
@@ -13,8 +14,7 @@ Use the navigation to the left to read about the available resources.
 terraform {
   required_providers {
     njalla = {
-      source = "Sighery/njalla"
-      version = "~> 0.10.0"
+      source = "jcmfernandes/njalla"
     }
   }
 }
