@@ -105,7 +105,7 @@ func resourceRecordMXRead(
 
 	d.Set("name", record.Name)
 	d.Set("ttl", record.TTL)
-	d.Set("priority", *record.Priority)
+	d.Set("priority", recordValue(record, "priority"))
 	d.Set("content", record.Content)
 
 	return diags
@@ -176,7 +176,7 @@ func resourceRecordMXImport(
 	d.Set("domain", domain)
 	d.Set("name", record.Name)
 	d.Set("ttl", record.TTL)
-	d.Set("priority", *record.Priority)
+	d.Set("priority", recordValue(record, "priority"))
 	d.Set("content", record.Content)
 
 	return []*schema.ResourceData{d}, nil

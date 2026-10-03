@@ -53,3 +53,34 @@ func TestRecordReadSkipsMalformedRecords(t *testing.T) {
 		})
 	}
 }
+
+// An MX record without `prio` must not crash Read or Import.
+func TestRecordMXMissingPriority(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(`{"result": {"records": [
+				{"id": "2", "name": "n", "content": "c", "ttl": 3600}
+			]}}`))
+		},
+	))
+	t.Cleanup(server.Close)
+
+	c := client.New("secret")
+	c.Endpoint = server.URL
+	config := &Config{Client: c}
+	r := resourceRecordMX()
+
+	d := schema.TestResourceDataRaw(
+		t, r.Schema, map[string]any{"domain": "a.b"},
+	)
+	d.SetId("2")
+	if diags := r.ReadContext(context.Background(), d, config); diags.HasError() {
+		t.Fatalf("Read failed: %v", diags)
+	}
+
+	d = schema.TestResourceDataRaw(t, r.Schema, map[string]any{})
+	d.SetId("a.b:2")
+	if _, err := r.Importer.StateContext(context.Background(), d, config); err != nil {
+		t.Fatalf("Import failed: %v", err)
+	}
+}
