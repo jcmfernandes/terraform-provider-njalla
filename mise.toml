@@ -1,7 +1,7 @@
 [tools]
 go = "1.27"
 goreleaser = "2"
-terraform = "1"
+opentofu = "1"
 
 [tasks.build]
 description = "Build the provider binary"
@@ -13,5 +13,5 @@ run = "go test ./..."
 
 [tasks.testacc]
 description = "Run acceptance tests (needs NJALLA_API_TOKEN and NJALLA_TESTACC_DOMAIN)"
-env = { TF_ACC = "1" }
-run = "go test -v ./..."
+env = { TF_ACC = "1", TF_ACC_PROVIDER_HOST = "registry.opentofu.org" }
+run = 'TF_ACC_TERRAFORM_PATH="$(command -v tofu)" go test -v ./...'

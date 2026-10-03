@@ -117,7 +117,7 @@ export NJALLA_TESTACC_DOMAIN="testdomain.com"
 TF_ACC=true go test -v ./...
 ```
 
-[mise][] pins Go, Terraform and GoReleaser in `mise.toml`, and wraps the above
+[mise][] pins Go, OpenTofu and GoReleaser in `mise.toml`, and wraps the above
 as tasks: `mise run build`, `mise run test`, `mise run testacc`.
 
 ### Releasing
