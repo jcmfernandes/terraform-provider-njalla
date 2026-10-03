@@ -218,15 +218,10 @@ func resourceServerDelete(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	data, err := config.Client.Request(
+	_, err := config.Client.Request(
 		ctx, "remove-server", map[string]any{"id": d.Id()},
 	)
 	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	var removed client.Server
-	if err := json.Unmarshal(data, &removed); err != nil {
 		return diag.FromErr(err)
 	}
 
