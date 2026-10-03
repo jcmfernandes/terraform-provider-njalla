@@ -10,6 +10,7 @@ data njalla_tlds all {}
 
 ## Attributes Reference
 
+* `id` - Always `tlds`.
 * `tlds` - List of TLDs sorted by name, each with:
   * `name` - The TLD, e.g. `com`.
   * `price` - Yearly price.

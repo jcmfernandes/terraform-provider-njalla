@@ -19,8 +19,10 @@ resource njalla_record_naptr example-naptr {
 * `name` - (Optional) Name for the record. Default is `@`.
 * `ttl` - (Required) TTL for the record. Value must be one of
   `60`, `300`, `900`, `3600`, `10800`, `21600` or `86400`.
-* `content` - (Required) Content for the record. Value must follow
-  [RFC 2915][]'s syntax from section 2.
+* `content` - (Required) Content for the record, as at least six fields
+  separated by single spaces: order, preference, flags, service, regexp and
+  replacement ([RFC 2915][] section 2). Order and preference must be
+  integers.
 
 ~> **Note** Changing the `domain` attribute forces the existing resource to be
 deleted from the previous domain, and created into the new domain.
@@ -28,5 +30,14 @@ deleted from the previous domain, and created into the new domain.
 ## Attributes Reference
 
 * `id` - Njalla ID for this record.
+
+## Import
+
+Records are imported by `domain:id`, where `id` is the record's Njalla ID
+(see the `njalla_records` data source):
+
+```sh
+$ tofu import njalla_record_naptr.example-naptr example.com:12345
+```
 
 [RFC 2915]: https://tools.ietf.org/html/rfc2915

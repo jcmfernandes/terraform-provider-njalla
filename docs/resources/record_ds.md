@@ -9,7 +9,7 @@ resource njalla_record_ds example-ds {
   domain = "example.com"
   name = "sub"
   ttl = 10800
-  content = "12345 13 2 1f2a...e9"
+  content = "12345 13 2 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
 }
 ```
 
@@ -28,3 +28,12 @@ deleted from the previous domain, and created into the new domain.
 ## Attributes Reference
 
 * `id` - Njalla ID for this record.
+
+## Import
+
+Records are imported by `domain:id`, where `id` is the record's Njalla ID
+(see the `njalla_records` data source):
+
+```sh
+$ tofu import njalla_record_ds.example-ds example.com:12345
+```

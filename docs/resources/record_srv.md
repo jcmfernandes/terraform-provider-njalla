@@ -24,8 +24,8 @@ resource njalla_record_srv example-srv {
   `60`, `300`, `900`, `3600`, `10800`, `21600` or `86400`.
 * `priority` - (Required) Priority for the record. Value must be one of
   `0`, `1`, `5`, `10`, `20`, `30`, `40`, `50` or `60`.
-* `weight` - (Required) Weight for the record, between 0 and 65535.
-* `port` - (Required) Port of the service, between 0 and 65535.
+* `weight` - (Required) Weight for the record, between `0` and `65535`.
+* `port` - (Required) Port of the service, between `0` and `65535`.
 * `content` - (Required) Target host of the service.
 
 ~> **Note** Changing the `domain` attribute forces the existing resource to be
@@ -34,3 +34,12 @@ deleted from the previous domain, and created into the new domain.
 ## Attributes Reference
 
 * `id` - Njalla ID for this record.
+
+## Import
+
+Records are imported by `domain:id`, where `id` is the record's Njalla ID
+(see the `njalla_records` data source):
+
+```sh
+$ tofu import njalla_record_srv.example-srv example.com:12345
+```

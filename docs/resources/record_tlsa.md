@@ -19,8 +19,10 @@ resource njalla_record_tlsa example-tlsa {
 * `name` - (Optional) Name for the record. Default is `@`.
 * `ttl` - (Required) TTL for the record. Value must be one of
   `60`, `300`, `900`, `3600`, `10800`, `21600` or `86400`.
-* `content` - (Required) Content for the record. Value must follow
-  [RFC 6698][]'s syntax from sections 2 and 7.
+* `content` - (Required) Content for the record, as four fields separated by
+  single spaces: certificate usage, selector, matching type and certificate
+  association data ([RFC 6698][] sections 2 and 7). The first three must be
+  integers between `0` and `255`.
 
 ~> **Note** Changing the `domain` attribute forces the existing resource to be
 deleted from the previous domain, and created into the new domain.
@@ -28,5 +30,14 @@ deleted from the previous domain, and created into the new domain.
 ## Attributes Reference
 
 * `id` - Njalla ID for this record.
+
+## Import
+
+Records are imported by `domain:id`, where `id` is the record's Njalla ID
+(see the `njalla_records` data source):
+
+```sh
+$ tofu import njalla_record_tlsa.example-tlsa example.com:12345
+```
 
 [RFC 6698]: https://tools.ietf.org/html/rfc6698

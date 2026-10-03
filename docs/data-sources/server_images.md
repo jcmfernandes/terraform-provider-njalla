@@ -10,4 +10,5 @@ data njalla_server_images all {}
 
 ## Attributes Reference
 
+* `id` - Always `server_images`.
 * `images` - List of server image names.

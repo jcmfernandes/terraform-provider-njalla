@@ -10,7 +10,7 @@ resource njalla_record_mx example-mx {
   name = "example-name"
   ttl = 10800
   priority = 10
-  content = "example-content"
+  content = "mail.example.com"
 }
 ```
 
@@ -30,3 +30,12 @@ deleted from the previous domain, and created into the new domain.
 ## Attributes Reference
 
 * `id` - Njalla ID for this record.
+
+## Import
+
+Records are imported by `domain:id`, where `id` is the record's Njalla ID
+(see the `njalla_records` data source):
+
+```sh
+$ tofu import njalla_record_mx.example-mx example.com:12345
+```

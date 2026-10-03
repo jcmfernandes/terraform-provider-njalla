@@ -1,50 +1,74 @@
 ---
-page_title: "Importing existing Record resources"
+page_title: "Importing existing resources"
 ---
 
-# Importing Record resources
+# Importing existing resources
 
--> **Note** Currently importing only updates the State file. This is subject
-to change in the future according to Terraform's roadmap. But at the moment it
-means that after importing a resource, you'll have to type out manually the
-resource definition in your Terraform files. If you don't, Terraform will
-assume you want to delete the newly imported resource (since its local
-definition doesn't match its remote status).
+Everything this provider manages can be imported, so objects set up through
+the Njalla web interface can be brought under OpenTofu or Terraform. The
+examples use `tofu`; `terraform` takes the same arguments.
 
-You may have set up DNS records manually through the Njalla web interface, and
-you're now trying to migrate to managing them through Terraform. Luckily
-Terraform allows for importing existing resources. To do so, first you need to
-declare the resource in your Terraform code:
+## Import IDs
+
+| Resource | Import ID |
+|----------|-----------|
+| `njalla_record_*` | `domain:id` |
+| `njalla_dnssec_record` | `domain:id` |
+| `njalla_glue_record` | `domain:name` |
+| `njalla_email_forward` | `domain:from:to` |
+| `njalla_domain` | domain name |
+| `njalla_server` | Njalla ID |
+| `njalla_vpn` | Njalla ID |
+| `njalla_api_token` | token key |
+
+`id` is the object's Njalla ID. Record IDs are listed by the `njalla_records`
+data source, server and VPN IDs by `njalla_servers` and `njalla_vpns`. DNSSEC
+record IDs are only available from the API's `list-dnssec` method.
+
+Importing a record ID into a resource of another record type isn't detected,
+so check the record's `type` first.
+
+## Import blocks
+
+Declare an `import` block next to the resource:
 
 ```hcl
-resource njalla_record_txt example-import {}
+import {
+  to = njalla_record_txt.example
+  id = "example.com:12345"
+}
+
+resource njalla_record_txt example {
+  domain = "example.com"
+  name = "@"
+  ttl = 10800
+  content = "example-content"
+}
 ```
 
-The declared resource is empty for now. We just need it as a placeholder to
-let Terraform know to attach a given remote resource to this new local
-resource.
+The next `tofu plan` shows the import, along with any difference between the
+configuration and the imported object. `tofu plan
+-generate-config-out=generated.tf` writes the resource block for you instead.
 
-We now need to run the `import` command to pull the remote resource and attach
-it to the local one:
+## The import command
+
+Alternatively, declare the resource and import it from the command line:
 
 ```sh
-# Base command
-$ terraform import address domain:id
-# Example command
-$ terraform import njalla_record_txt.example-import example.com:12345
+$ tofu import njalla_record_txt.example example.com:12345
 ```
 
-Check the [Terraform import usage][Terraform import] on how to figure out the
-`address` positional argument. It will depend on your Terraform declaration
-and where have you defined your resources.
+This only updates the state. Until the resource block matches the imported
+object, plans will change it to match the configuration.
 
-The `domain:id` bit is the important part, and specific to this provider.
-Since records are attached to a given domain, to import a record into
-Terraform we need both the Njalla ID of the record, and the domain it's
-attached to.
+## Caveats
 
-The `id` bit is the ID the record has in Njalla's DB. This, as of writing, can
-only be fetched from the `list-records` API call, which will contain the value
-under the key `id` for each record.
+* `njalla_domain`: `years` and `contacts` aren't read back. Importing doesn't
+  register or charge anything.
+* `njalla_server`: `months` isn't read back.
+* `njalla_api_token`: `acme` can't be read back and is imported as `false`.
+  Setting `acme = true` in the configuration then replaces the token.
 
-[Terraform import]: https://www.terraform.io/docs/import/usage.html
+See the [OpenTofu import documentation][OpenTofu import] for details.
+
+[OpenTofu import]: https://opentofu.org/docs/language/import/

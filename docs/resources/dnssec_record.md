@@ -11,7 +11,7 @@ resource njalla_dnssec_record example {
   algorithm = 13
   digest_type = 2
   key_tag = 12345
-  digest = "1f2a...e9"
+  digest = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
 }
 ```
 
@@ -19,10 +19,13 @@ resource njalla_dnssec_record example {
 
 * `domain` - (Required) Specifies the domain this record will be applied to.
 * `algorithm` - (Required) DNSSEC algorithm number.
-* `digest` - (Optional) Digest of the DNSKEY. Conflicts with `public_key`.
-* `digest_type` - (Optional) Digest type number. Required with `digest`.
-* `key_tag` - (Optional) Key tag of the DNSKEY. Required with `digest`.
-* `public_key` - (Optional) Public key of the DNSKEY. Conflicts with `digest`.
+* `digest` - (Optional) Digest of the DNSKEY.
+* `digest_type` - (Optional) Digest type number.
+* `key_tag` - (Optional) Key tag of the DNSKEY.
+* `public_key` - (Optional) Public key of the DNSKEY.
+
+Exactly one of `digest` and `public_key` must be set. `digest`, `digest_type`
+and `key_tag` must be set together.
 
 ~> **Note** Njalla can't edit DNSSEC records, so changing any argument forces
 a new record.
@@ -33,6 +36,9 @@ a new record.
 
 ## Import
 
+DNSSEC records are imported by `domain:id`, where `id` is the record's Njalla
+ID from the API's `list-dnssec` method:
+
 ```sh
-$ terraform import njalla_dnssec_record.example example.com:12345
+$ tofu import njalla_dnssec_record.example example.com:12345
 ```

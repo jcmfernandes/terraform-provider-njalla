@@ -5,8 +5,8 @@ afterwards.
 
 !> **Warning** Creating this resource registers the domain, which charges your
 Njalla wallet. Njalla can't delete domains: destroying the resource only
-removes it from the Terraform state, and the domain stays in your account
-until it expires.
+removes it from the state, and the domain stays in your account until it
+expires.
 
 ## Example Usage
 
@@ -22,8 +22,9 @@ resource njalla_domain example {
 ## Argument Reference
 
 * `name` - (Required) Domain name to register.
-* `years` - (Optional) Years to register the domain for. Default is `1`. Only
-  used when registering; changes afterwards are ignored.
+* `years` - (Optional) Years to register the domain for. Must be at least
+  `1`. Default is `1`. Only used when registering; changes afterwards are
+  ignored.
 * `mailforwarding` - (Optional) Whether email forwarding is enabled. Left
   unmanaged if unset.
 * `dnssec` - (Optional) Whether DNSSEC is enabled. Left unmanaged if unset.
@@ -31,11 +32,18 @@ resource njalla_domain example {
   unmanaged if unset.
 * `contacts` - (Optional) Map of custom WHOIS contact IDs. Only sent to
   Njalla, never read back.
-* `nameservers` - (Optional) Custom nameservers. Unset or empty uses Njalla's
-  nameservers.
+* `nameservers` - (Optional) List of custom nameservers. Unset or empty uses
+  Njalla's nameservers.
 
-~> **Note** Changing `name` registers a new domain. The previous one stays in
-your account.
+~> **Note** Changing `name` registers a new domain, charging the wallet again.
+The previous one stays in your account.
+
+~> **Note** Once Njalla accepts the registration, only a registration Njalla
+reports as failed is an error. Anything else is a warning, so the domain is
+kept in the state and isn't registered again: a registration not confirmed
+within the create timeout, or settings (`mailforwarding`, `dnssec`, `lock`,
+`contacts`, `nameservers`) that couldn't be applied. The next apply retries
+the settings.
 
 -> **Note** Renewals aren't managed. Renew through the Njalla web interface or
 API.
@@ -53,8 +61,9 @@ API.
 
 ## Import
 
-Already owned domains can be imported by name, without registering them:
+Already owned domains are imported by name, without registering them.
+`years` and `contacts` aren't read back.
 
 ```sh
-$ terraform import njalla_domain.example example.com
+$ tofu import njalla_domain.example example.com
 ```

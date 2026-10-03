@@ -10,5 +10,6 @@ data njalla_vpns all {}
 
 ## Attributes Reference
 
+* `id` - Always `vpns`.
 * `vpns` - List of VPN clients, each with `id`, `name`, `autorenew`,
   `backend`, `publickey` and `expiry`.

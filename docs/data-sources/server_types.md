@@ -10,4 +10,5 @@ data njalla_server_types all {}
 
 ## Attributes Reference
 
+* `id` - Always `server_types`.
 * `types` - List of server type names.
