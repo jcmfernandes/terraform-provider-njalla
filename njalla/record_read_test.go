@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -59,7 +60,7 @@ func TestRecordMXMissingPriority(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(`{"result": {"records": [
-				{"id": "2", "name": "n", "content": "c", "ttl": 3600}
+				{"id": "2", "type": "MX", "name": "n", "content": "c", "ttl": 3600}
 			]}}`))
 		},
 	))
@@ -82,5 +83,36 @@ func TestRecordMXMissingPriority(t *testing.T) {
 	d.SetId("a.b:2")
 	if _, err := r.Importer.StateContext(context.Background(), d, config); err != nil {
 		t.Fatalf("Import failed: %v", err)
+	}
+}
+
+// Importing a record ID into a resource of another record type must fail.
+func TestRecordImportRejectsOtherTypes(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(`{"result": {"records": [
+				{"id": "2", "type": "OTHER", "name": "n", "content": "c"}
+			]}}`))
+		},
+	))
+	t.Cleanup(server.Close)
+
+	c := client.New("secret")
+	c.Endpoint = server.URL
+	config := &Config{Client: c}
+
+	for name, r := range Provider().ResourcesMap {
+		if !strings.HasPrefix(name, "njalla_record_") {
+			continue
+		}
+
+		t.Run(name, func(t *testing.T) {
+			d := schema.TestResourceDataRaw(t, r.Schema, map[string]any{})
+			d.SetId("a.b:2")
+			_, err := r.Importer.StateContext(context.Background(), d, config)
+			if err == nil || !strings.Contains(err.Error(), "OTHER") {
+				t.Errorf("err = %v, want a type mismatch", err)
+			}
+		})
 	}
 }

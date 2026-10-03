@@ -137,6 +137,9 @@ func resourceRecordSVCBImport(
 			"Couldn't find record %s for domain %s", id, domain,
 		)
 	}
+	if err := checkRecordType(record, "SVCB"); err != nil {
+		return nil, err
+	}
 
 	d.SetId(id)
 	d.Set("domain", domain)

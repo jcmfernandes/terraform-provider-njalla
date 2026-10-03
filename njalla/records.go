@@ -3,6 +3,7 @@ package njalla
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -140,6 +141,17 @@ func findRecord(
 	}
 
 	return nil, nil
+}
+
+// checkRecordType fails if the record isn't of the given type, so an ID
+// can't be imported into a resource of another record type.
+func checkRecordType(r *client.Record, recordType string) error {
+	if r.Type != recordType {
+		return fmt.Errorf(
+			"Record %s is of type %s, not %s", r.ID, r.Type, recordType,
+		)
+	}
+	return nil
 }
 
 // setRecord copies the fields of the given type from a record into state.
