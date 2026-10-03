@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -80,6 +81,11 @@ func resourceDNSSECRecord() *schema.Resource {
 	}
 }
 
+// dnssecCreateMu serialises creates: the new DNSSEC record is found by
+// diffing the list before and after adding it, which breaks if another
+// create adds one in between.
+var dnssecCreateMu sync.Mutex
+
 func resourceDNSSECRecordCreate(
 	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
@@ -98,6 +104,9 @@ func resourceDNSSECRecordCreate(
 		params["digest_type"] = d.Get("digest_type").(int)
 		params["key_tag"] = d.Get("key_tag").(int)
 	}
+
+	dnssecCreateMu.Lock()
+	defer dnssecCreateMu.Unlock()
 
 	before, err := listDNSSEC(ctx, config.Client, domain)
 	if err != nil {

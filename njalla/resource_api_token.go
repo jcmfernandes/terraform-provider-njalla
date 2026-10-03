@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -103,6 +104,11 @@ func resourceAPIToken() *schema.Resource {
 	}
 }
 
+// apiTokenCreateMu serialises creates: the new token is found by diffing
+// the list before and after adding it, which breaks if another create adds
+// one in between.
+var apiTokenCreateMu sync.Mutex
+
 func resourceAPITokenCreate(
 	ctx context.Context, d *schema.ResourceData, m any,
 ) diag.Diagnostics {
@@ -120,6 +126,9 @@ func resourceAPITokenCreate(
 	if d.Get("acme").(bool) {
 		params["acme"] = true
 	}
+
+	apiTokenCreateMu.Lock()
+	defer apiTokenCreateMu.Unlock()
 
 	before, err := listTokens(ctx, config.Client)
 	if err != nil {
