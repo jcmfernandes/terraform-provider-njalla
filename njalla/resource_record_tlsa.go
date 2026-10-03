@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 func resourceRecordTLSA() *schema.Resource {
@@ -39,7 +39,7 @@ func resourceRecordTLSA() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				Description:  "TTL for the record.",
-				ValidateFunc: validation.IntInSlice(gonjalla.ValidTTL),
+				ValidateFunc: validation.IntInSlice(client.ValidTTL),
 			},
 			"content": {
 				Type:         schema.TypeString,
@@ -62,14 +62,14 @@ func resourceRecordTLSACreate(
 
 	domain := d.Get("domain").(string)
 
-	record := gonjalla.Record{
+	record := client.Record{
 		Type:    "TLSA",
 		Name:    d.Get("name").(string),
 		Content: d.Get("content").(string),
 		TTL:     d.Get("ttl").(int),
 	}
 
-	saved, err := gonjalla.AddRecord(config.Token, domain, record)
+	saved, err := config.Client.AddRecord(ctx, domain, record)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -89,7 +89,7 @@ func resourceRecordTLSARead(
 
 	var diags diag.Diagnostics
 
-	records, err := gonjalla.ListRecords(config.Token, domain)
+	records, err := config.Client.ListRecords(ctx, domain)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -115,7 +115,7 @@ func resourceRecordTLSAUpdate(
 
 	domain := d.Get("domain").(string)
 
-	updateRecord := gonjalla.Record{
+	updateRecord := client.Record{
 		ID:      d.Id(),
 		Name:    d.Get("name").(string),
 		Type:    "TLSA",
@@ -123,7 +123,7 @@ func resourceRecordTLSAUpdate(
 		TTL:     d.Get("ttl").(int),
 	}
 
-	err := gonjalla.EditRecord(config.Token, domain, updateRecord)
+	err := config.Client.EditRecord(ctx, domain, updateRecord)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -138,7 +138,7 @@ func resourceRecordTLSADelete(
 
 	domain := d.Get("domain").(string)
 
-	err := gonjalla.RemoveRecord(config.Token, domain, d.Id())
+	err := config.Client.RemoveRecord(ctx, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -157,7 +157,7 @@ func resourceRecordTLSAImport(
 
 	config := m.(*Config)
 
-	records, err := gonjalla.ListRecords(config.Token, domain)
+	records, err := config.Client.ListRecords(ctx, domain)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading records for domain %s failed: %s", domain, err.Error(),

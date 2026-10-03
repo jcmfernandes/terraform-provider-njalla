@@ -1,6 +1,7 @@
 package njalla
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -133,7 +134,7 @@ func testAccCheckAPITokenDestroy(s *terraform.State) error {
 			continue
 		}
 
-		tokens, err := listTokens(config.Token)
+		tokens, err := listTokens(context.Background(), config.Client)
 		if err != nil {
 			return fmt.Errorf("Error fetching the API tokens: %s", err)
 		}
@@ -159,7 +160,7 @@ func testAccCheckAPITokenExists(resource string) resource.TestCheckFunc {
 		}
 
 		config := testAccProvider.Meta().(*Config)
-		tokens, err := listTokens(config.Token)
+		tokens, err := listTokens(context.Background(), config.Client)
 		if err != nil {
 			return fmt.Errorf("Error fetching the API tokens: %s", err)
 		}

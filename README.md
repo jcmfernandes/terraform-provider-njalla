@@ -3,13 +3,11 @@
 > [!IMPORTANT]  
 > This repository is a **hard fork** of https://github.com/Sighery/terraform-provider-njalla.  
 
-[Njalla][] is a privacy-oriented domain name registration service. Recently
-they released their [official API][Njalla API]. Following the release of their
-official API, I created an (for now extremely limited)
-[unofficial Golang package][gonjalla package] for their API called `gonjalla`.
+[Njalla][] is a privacy-oriented domain name registration service, with an
+[official API][Njalla API].
 
-This repository is the unofficial Terraform provider for the Njalla API, using
-the `gonjalla` package.
+This repository is the unofficial Terraform provider for the Njalla API. It
+talks to the API through its own small client in [`internal/client`][].
 
 ---
 
@@ -49,13 +47,9 @@ files locally to read them as well.
 
 ## Contributing
 
-As mentioned previously, this provider plugin depends completely on the
-[gonjalla package][]. If you wanted to add new Njalla resources to this
-provider, chances are you'd first have to implement them in the `gonjalla`
-package.
-
-Assuming you've done that, and followed that package's contributing guides,
-once adding new resources to the provider, here's how I do it.
+Resources call the Njalla API through [`internal/client`][]: `Request` for
+any method, plus typed helpers for the calls several resources share. Here's
+how to add new resources to the provider.
 
 ### New resource
 
@@ -151,7 +145,7 @@ configured GPG key.
 
 [Njalla]: https://njal.la
 [Njalla API]: https://njal.la/api/
-[gonjalla package]: https://github.com/Sighery/gonjalla
+[`internal/client`]: internal/client/
 [Terraform providers registry]: https://registry.terraform.io/browse/providers
 [Sighery/njalla registry]: https://registry.terraform.io/providers/Sighery/njalla
 [rendered documentation]: https://registry.terraform.io/providers/Sighery/njalla/latest/docs

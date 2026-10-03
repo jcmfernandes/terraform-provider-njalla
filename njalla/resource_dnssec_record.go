@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 // dnssecRecord is a `list-dnssec` entry.
@@ -99,17 +99,17 @@ func resourceDNSSECRecordCreate(
 		params["key_tag"] = d.Get("key_tag").(int)
 	}
 
-	before, err := listDNSSEC(config.Token, domain)
+	before, err := listDNSSEC(ctx, config.Client, domain)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	_, err = gonjalla.Request(config.Token, "add-dnssec", params)
+	_, err = config.Client.Request(ctx, "add-dnssec", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	after, err := listDNSSEC(config.Token, domain)
+	after, err := listDNSSEC(ctx, config.Client, domain)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -133,7 +133,7 @@ func resourceDNSSECRecordRead(
 
 	var diags diag.Diagnostics
 
-	records, err := listDNSSEC(config.Token, domain)
+	records, err := listDNSSEC(ctx, config.Client, domain)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -160,7 +160,7 @@ func resourceDNSSECRecordDelete(
 		"id":     d.Id(),
 	}
 
-	_, err := gonjalla.Request(config.Token, "remove-dnssec", params)
+	_, err := config.Client.Request(ctx, "remove-dnssec", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -179,7 +179,7 @@ func resourceDNSSECRecordImport(
 
 	config := m.(*Config)
 
-	records, err := listDNSSEC(config.Token, domain)
+	records, err := listDNSSEC(ctx, config.Client, domain)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading DNSSEC records for domain %s failed: %s",
@@ -239,9 +239,11 @@ func newDNSSECID(before []dnssecRecord, after []dnssecRecord) (string, error) {
 	return added[0], nil
 }
 
-func listDNSSEC(token string, domain string) ([]dnssecRecord, error) {
-	data, err := gonjalla.Request(
-		token, "list-dnssec", map[string]any{"domain": domain},
+func listDNSSEC(
+	ctx context.Context, c *client.Client, domain string,
+) ([]dnssecRecord, error) {
+	data, err := c.Request(
+		ctx, "list-dnssec", map[string]any{"domain": domain},
 	)
 	if err != nil {
 		return nil, err

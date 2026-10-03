@@ -18,7 +18,7 @@ resource njalla_record_tlsa example-tlsa {
 * `domain` - (Required) Specifies the domain this record will be applied to.
 * `name` - (Optional) Name for the record. Default is `@`.
 * `ttl` - (Required) TTL for the record. Value must be one of
-  [gonjalla's `ValidTTL`][gonjalla variable ValidTTL].
+  `60`, `300`, `900`, `3600`, `10800`, `21600` or `86400`.
 * `content` - (Required) Content for the record. Value must follow
   [RFC 6698][]'s syntax from sections 2 and 7.
 
@@ -29,5 +29,4 @@ deleted from the previous domain, and created into the new domain.
 
 * `id` - Njalla ID for this record.
 
-[gonjalla variable ValidTTL]: https://pkg.go.dev/github.com/Sighery/gonjalla?tab=doc#pkg-variables
 [RFC 6698]: https://tools.ietf.org/html/rfc6698

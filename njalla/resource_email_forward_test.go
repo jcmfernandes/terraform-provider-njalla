@@ -1,6 +1,7 @@
 package njalla
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -133,7 +134,7 @@ func testAccEmailForwardExists(
 	config *Config, rs *terraform.ResourceState,
 ) (bool, error) {
 	domain := rs.Primary.Attributes["domain"]
-	forwards, err := listForwards(config.Token, domain)
+	forwards, err := listForwards(context.Background(), config.Client, domain)
 	if err != nil {
 		return false, fmt.Errorf(
 			"Error fetching the email forwards for domain %s: %s",

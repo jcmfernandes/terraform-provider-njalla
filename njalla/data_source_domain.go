@@ -55,7 +55,7 @@ func dataSourceDomainRead(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	domain, err := getDomain(config.Token, d.Get("name").(string))
+	domain, err := getDomain(ctx, config.Client, d.Get("name").(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}

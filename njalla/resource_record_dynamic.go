@@ -8,11 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
-// Dynamic records take neither `content` nor `ttl`, but gonjalla.Record
-// always serialises both, so requests are built by hand. Njalla generates
+// Dynamic records take neither `content` nor `ttl`, so requests are built
+// by hand rather than through client.AddRecord. Njalla generates
 // the DDNS update key and exposes it as the record's `content`.
 func resourceRecordDynamic() *schema.Resource {
 	return &schema.Resource{
@@ -61,12 +61,12 @@ func resourceRecordDynamicCreate(
 		"name":   d.Get("name").(string),
 	}
 
-	data, err := gonjalla.Request(config.Token, "add-record", params)
+	data, err := config.Client.Request(ctx, "add-record", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	var saved gonjalla.Record
+	var saved client.Record
 	if err := json.Unmarshal(data, &saved); err != nil {
 		return diag.FromErr(err)
 	}
@@ -85,7 +85,7 @@ func resourceRecordDynamicRead(
 
 	var diags diag.Diagnostics
 
-	records, err := gonjalla.ListRecords(config.Token, domain)
+	records, err := config.Client.ListRecords(ctx, domain)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -110,7 +110,7 @@ func resourceRecordDynamicDelete(
 
 	domain := d.Get("domain").(string)
 
-	err := gonjalla.RemoveRecord(config.Token, domain, d.Id())
+	err := config.Client.RemoveRecord(ctx, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -129,7 +129,7 @@ func resourceRecordDynamicImport(
 
 	config := m.(*Config)
 
-	records, err := gonjalla.ListRecords(config.Token, domain)
+	records, err := config.Client.ListRecords(ctx, domain)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading records for domain %s failed: %s", domain, err.Error(),

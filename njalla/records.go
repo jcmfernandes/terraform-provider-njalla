@@ -1,31 +1,16 @@
 package njalla
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
-// gonjalla.Record lacks the fields of the newer record types and always
-// serialises `content` and `ttl`, so these types build requests by hand.
-
-// record is a `list-records` entry, including the fields gonjalla.Record
-// doesn't know about.
-type record struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Type         string `json:"type"`
-	Content      string `json:"content"`
-	TTL          int    `json:"ttl"`
-	Priority     int    `json:"prio"`
-	Weight       int    `json:"weight"`
-	Port         int    `json:"port"`
-	Target       string `json:"target"`
-	SSHAlgorithm int    `json:"ssh_algorithm"`
-	SSHType      int    `json:"ssh_type"`
-}
+// client.AddRecord/EditRecord always send `content` and `ttl` and nothing
+// newer, so these types build requests by hand.
 
 // recordFields lists the attributes each record type sends besides
 // `domain`, `type` and `name`, following the per-type rules of add-record.
@@ -46,14 +31,18 @@ func recordParam(attr string) string {
 	return attr
 }
 
-func (r record) value(attr string) any {
+// recordValue returns the value of an attribute of the given record.
+func recordValue(r *client.Record, attr string) any {
 	switch attr {
 	case "content":
 		return r.Content
 	case "ttl":
 		return r.TTL
 	case "priority":
-		return r.Priority
+		if r.Priority == nil {
+			return 0
+		}
+		return *r.Priority
 	case "weight":
 		return r.Weight
 	case "port":
@@ -85,15 +74,18 @@ func recordParams(recordType string, d *schema.ResourceData) map[string]any {
 	return params
 }
 
-func createRecord(token string, recordType string, d *schema.ResourceData) error {
-	data, err := gonjalla.Request(
-		token, "add-record", recordParams(recordType, d),
+func createRecord(
+	ctx context.Context, c *client.Client, recordType string,
+	d *schema.ResourceData,
+) error {
+	data, err := c.Request(
+		ctx, "add-record", recordParams(recordType, d),
 	)
 	if err != nil {
 		return err
 	}
 
-	var saved record
+	var saved client.Record
 	if err := json.Unmarshal(data, &saved); err != nil {
 		return err
 	}
@@ -102,9 +94,12 @@ func createRecord(token string, recordType string, d *schema.ResourceData) error
 	return nil
 }
 
-func updateRecord(token string, recordType string, d *schema.ResourceData) error {
-	_, err := gonjalla.Request(
-		token, "edit-record", recordParams(recordType, d),
+func updateRecord(
+	ctx context.Context, c *client.Client, recordType string,
+	d *schema.ResourceData,
+) error {
+	_, err := c.Request(
+		ctx, "edit-record", recordParams(recordType, d),
 	)
 	return err
 }
@@ -112,9 +107,11 @@ func updateRecord(token string, recordType string, d *schema.ResourceData) error
 // findRecord returns the record with the given ID, or nil if it's gone.
 // Entries are decoded one at a time, so a record of another type with an
 // unexpected shape can't break the lookup.
-func findRecord(token string, domain string, id string) (*record, error) {
-	data, err := gonjalla.Request(
-		token, "list-records", map[string]any{"domain": domain},
+func findRecord(
+	ctx context.Context, c *client.Client, domain string, id string,
+) (*client.Record, error) {
+	data, err := c.Request(
+		ctx, "list-records", map[string]any{"domain": domain},
 	)
 	if err != nil {
 		return nil, err
@@ -135,7 +132,7 @@ func findRecord(token string, domain string, id string) (*record, error) {
 			continue
 		}
 
-		var found record
+		var found client.Record
 		if err := json.Unmarshal(raw, &found); err != nil {
 			return nil, err
 		}
@@ -146,9 +143,9 @@ func findRecord(token string, domain string, id string) (*record, error) {
 }
 
 // setRecord copies the fields of the given type from a record into state.
-func setRecord(recordType string, d *schema.ResourceData, r *record) {
+func setRecord(recordType string, d *schema.ResourceData, r *client.Record) {
 	d.Set("name", r.Name)
 	for _, attr := range recordFields[recordType] {
-		d.Set(attr, r.value(attr))
+		d.Set(attr, recordValue(r, attr))
 	}
 }

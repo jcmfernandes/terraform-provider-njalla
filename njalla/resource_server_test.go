@@ -1,6 +1,7 @@
 package njalla
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -66,7 +67,9 @@ func testAccCheckServerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		exists, err := serverExists(config.Token, rs.Primary.ID)
+		exists, err := serverExists(
+			context.Background(), config.Client, rs.Primary.ID,
+		)
 		if err != nil {
 			return fmt.Errorf("Error fetching the servers: %s", err)
 		}
@@ -89,7 +92,9 @@ func testAccCheckServerExists(resource string) resource.TestCheckFunc {
 		}
 
 		config := testAccProvider.Meta().(*Config)
-		exists, err := serverExists(config.Token, rs.Primary.ID)
+		exists, err := serverExists(
+			context.Background(), config.Client, rs.Primary.ID,
+		)
 		if err != nil {
 			return fmt.Errorf("Error fetching the servers: %s", err)
 		}

@@ -40,7 +40,7 @@ func dataSourceVPNsRead(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	vpns, err := listVPNs(config.Token)
+	vpns, err := listVPNs(ctx, config.Client)
 	if err != nil {
 		return diag.FromErr(err)
 	}

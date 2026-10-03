@@ -42,7 +42,7 @@ func dataSourceDomainsRead(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	domains, err := listDomains(config.Token)
+	domains, err := listDomains(ctx, config.Client)
 	if err != nil {
 		return diag.FromErr(err)
 	}

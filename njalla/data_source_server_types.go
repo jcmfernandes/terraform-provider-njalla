@@ -2,11 +2,10 @@ package njalla
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/Sighery/gonjalla"
 )
 
 func dataSourceServerTypes() *schema.Resource {
@@ -29,13 +28,22 @@ func dataSourceServerTypesRead(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	types, err := gonjalla.ListServerTypes(config.Token)
+	data, err := config.Client.Request(
+		ctx, "list-server-types", map[string]any{},
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	var response struct {
+		Types []string `json:"types"`
+	}
+	if err := json.Unmarshal(data, &response); err != nil {
+		return diag.FromErr(err)
+	}
+
 	d.SetId("server_types")
-	d.Set("types", types)
+	d.Set("types", response.Types)
 
 	var diags diag.Diagnostics
 	return diags

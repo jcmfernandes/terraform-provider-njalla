@@ -2,12 +2,9 @@ package njalla
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/Sighery/gonjalla"
 )
 
 // Fields a record type doesn't use are left at their zero value.
@@ -56,29 +53,20 @@ func dataSourceRecordsRead(
 
 	domain := d.Get("domain").(string)
 
-	data, err := gonjalla.Request(
-		config.Token, "list-records", map[string]any{"domain": domain},
-	)
+	records, err := config.Client.ListRecords(ctx, domain)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	var response struct {
-		Records []record `json:"records"`
-	}
-	if err := json.Unmarshal(data, &response); err != nil {
-		return diag.FromErr(err)
-	}
-
-	result := make([]map[string]any, 0, len(response.Records))
-	for _, r := range response.Records {
+	result := make([]map[string]any, 0, len(records))
+	for _, r := range records {
 		result = append(result, map[string]any{
 			"id":            r.ID,
 			"name":          r.Name,
 			"type":          r.Type,
 			"content":       r.Content,
 			"ttl":           r.TTL,
-			"priority":      r.Priority,
+			"priority":      recordValue(&r, "priority"),
 			"weight":        r.Weight,
 			"port":          r.Port,
 			"target":        r.Target,

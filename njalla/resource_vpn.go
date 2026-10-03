@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 // vpn is a `list-vpns`/`get-vpn` entry.
@@ -81,7 +81,7 @@ func resourceVPNCreate(
 		"autorenew": d.Get("autorenew").(bool),
 	}
 
-	data, err := gonjalla.Request(config.Token, "add-vpn", params)
+	data, err := config.Client.Request(ctx, "add-vpn", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -105,7 +105,7 @@ func resourceVPNCreate(
 	var diags diag.Diagnostics
 	if len(edit) > 0 {
 		edit["id"] = saved.ID
-		_, err := gonjalla.Request(config.Token, "edit-vpn", edit)
+		_, err := config.Client.Request(ctx, "edit-vpn", edit)
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
@@ -127,7 +127,7 @@ func resourceVPNRead(
 
 	var diags diag.Diagnostics
 
-	vpns, err := listVPNs(config.Token)
+	vpns, err := listVPNs(ctx, config.Client)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -145,8 +145,8 @@ func resourceVPNRead(
 		return diags
 	}
 
-	data, err := gonjalla.Request(
-		config.Token, "get-vpn", map[string]any{"id": d.Id()},
+	data, err := config.Client.Request(
+		ctx, "get-vpn", map[string]any{"id": d.Id()},
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -178,7 +178,7 @@ func resourceVPNUpdate(
 		}
 	}
 
-	_, err := gonjalla.Request(config.Token, "edit-vpn", params)
+	_, err := config.Client.Request(ctx, "edit-vpn", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -191,8 +191,8 @@ func resourceVPNDelete(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	_, err := gonjalla.Request(
-		config.Token, "remove-vpn", map[string]any{"id": d.Id()},
+	_, err := config.Client.Request(
+		ctx, "remove-vpn", map[string]any{"id": d.Id()},
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -202,8 +202,8 @@ func resourceVPNDelete(
 	return diags
 }
 
-func listVPNs(token string) ([]vpn, error) {
-	data, err := gonjalla.Request(token, "list-vpns", map[string]any{})
+func listVPNs(ctx context.Context, c *client.Client) ([]vpn, error) {
+	data, err := c.Request(ctx, "list-vpns", map[string]any{})
 	if err != nil {
 		return nil, err
 	}

@@ -7,8 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/Sighery/gonjalla"
 )
 
 // get-tlds returns an object keyed by TLD; it's exposed as a list sorted by
@@ -52,7 +50,7 @@ func dataSourceTLDsRead(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	data, err := gonjalla.Request(config.Token, "get-tlds", map[string]any{})
+	data, err := config.Client.Request(ctx, "get-tlds", map[string]any{})
 	if err != nil {
 		return diag.FromErr(err)
 	}

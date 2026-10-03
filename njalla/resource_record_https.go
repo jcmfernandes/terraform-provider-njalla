@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 func resourceRecordHTTPS() *schema.Resource {
@@ -37,7 +37,7 @@ func resourceRecordHTTPS() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				Description:  "Priority for the record.",
-				ValidateFunc: validation.IntInSlice(gonjalla.ValidPriority),
+				ValidateFunc: validation.IntInSlice(client.ValidPriority),
 			},
 			"target": {
 				Type:        schema.TypeString,
@@ -57,7 +57,7 @@ func resourceRecordHTTPSCreate(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	if err := createRecord(config.Token, "HTTPS", d); err != nil {
+	if err := createRecord(ctx, config.Client, "HTTPS", d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -73,7 +73,7 @@ func resourceRecordHTTPSRead(
 
 	var diags diag.Diagnostics
 
-	record, err := findRecord(config.Token, domain, d.Id())
+	record, err := findRecord(ctx, config.Client, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -92,7 +92,7 @@ func resourceRecordHTTPSUpdate(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	if err := updateRecord(config.Token, "HTTPS", d); err != nil {
+	if err := updateRecord(ctx, config.Client, "HTTPS", d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -106,7 +106,7 @@ func resourceRecordHTTPSDelete(
 
 	domain := d.Get("domain").(string)
 
-	err := gonjalla.RemoveRecord(config.Token, domain, d.Id())
+	err := config.Client.RemoveRecord(ctx, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -125,7 +125,7 @@ func resourceRecordHTTPSImport(
 
 	config := m.(*Config)
 
-	record, err := findRecord(config.Token, domain, id)
+	record, err := findRecord(ctx, config.Client, domain, id)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading records for domain %s failed: %s", domain, err.Error(),

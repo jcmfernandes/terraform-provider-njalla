@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 // Provider for Njalla resources
@@ -64,7 +66,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 	if v, ok := d.GetOk("api_token"); ok {
 		token := v.(string)
 		config := Config{
-			Token: token,
+			Client: client.New(token),
 		}
 
 		return &config, diags

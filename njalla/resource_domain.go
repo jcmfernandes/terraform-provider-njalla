@@ -12,11 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
-// domainInfo is a `list-domains`/`get-domain` entry. gonjalla.Domain parses
-// `expiry` as a timestamp and lacks the fields edit-domain manages.
+// domainInfo is a `list-domains`/`get-domain` entry.
 type domainInfo struct {
 	Name           string   `json:"name"`
 	Status         string   `json:"status"`
@@ -123,7 +122,7 @@ func resourceDomainCreate(
 		"years":  d.Get("years").(int),
 	}
 
-	data, err := gonjalla.Request(config.Token, "register-domain", params)
+	data, err := config.Client.Request(ctx, "register-domain", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -140,7 +139,7 @@ func resourceDomainCreate(
 	var diags diag.Diagnostics
 
 	err = waitForDomain(
-		ctx, config.Token, name, task.Task, d.Timeout(schema.TimeoutCreate),
+		ctx, config.Client, name, task.Task, d.Timeout(schema.TimeoutCreate),
 	)
 	var failed *registrationError
 	if errors.As(err, &failed) {
@@ -172,7 +171,7 @@ func resourceDomainCreate(
 		edit["nameservers"] = v
 	}
 
-	if err := editDomain(config.Token, name, edit); err != nil {
+	if err := editDomain(ctx, config.Client, name, edit); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Domain settings not applied",
@@ -202,7 +201,7 @@ func resourceDomainRead(
 
 	var diags diag.Diagnostics
 
-	domains, err := listDomains(config.Token)
+	domains, err := listDomains(ctx, config.Client)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -220,7 +219,7 @@ func resourceDomainRead(
 		return diags
 	}
 
-	domain, err := getDomain(config.Token, d.Id())
+	domain, err := getDomain(ctx, config.Client, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -251,7 +250,7 @@ func resourceDomainUpdate(
 		}
 	}
 
-	if err := editDomain(config.Token, d.Id(), edit); err != nil {
+	if err := editDomain(ctx, config.Client, d.Id(), edit); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -278,12 +277,12 @@ func resourceDomainDelete(
 // only documents `status` as an object, so completion is detected by the
 // domain turning up as active.
 func waitForDomain(
-	ctx context.Context, token string, name string, task string,
+	ctx context.Context, c *client.Client, name string, task string,
 	timeout time.Duration,
 ) error {
 	return retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		data, err := gonjalla.Request(
-			token, "check-task", map[string]any{"id": task},
+		data, err := c.Request(
+			ctx, "check-task", map[string]any{"id": task},
 		)
 		if err != nil {
 			return retry.NonRetryableError(err)
@@ -302,7 +301,7 @@ func waitForDomain(
 			)
 		}
 
-		domains, err := listDomains(token)
+		domains, err := listDomains(ctx, c)
 		if err != nil {
 			return retry.NonRetryableError(err)
 		}
@@ -320,18 +319,20 @@ func waitForDomain(
 	})
 }
 
-func editDomain(token string, name string, edit map[string]any) error {
+func editDomain(
+	ctx context.Context, c *client.Client, name string, edit map[string]any,
+) error {
 	if len(edit) == 0 {
 		return nil
 	}
 
 	edit["domain"] = name
-	_, err := gonjalla.Request(token, "edit-domain", edit)
+	_, err := c.Request(ctx, "edit-domain", edit)
 	return err
 }
 
-func listDomains(token string) ([]domainInfo, error) {
-	data, err := gonjalla.Request(token, "list-domains", map[string]any{})
+func listDomains(ctx context.Context, c *client.Client) ([]domainInfo, error) {
+	data, err := c.Request(ctx, "list-domains", map[string]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -346,9 +347,11 @@ func listDomains(token string) ([]domainInfo, error) {
 	return response.Domains, nil
 }
 
-func getDomain(token string, name string) (domainInfo, error) {
-	data, err := gonjalla.Request(
-		token, "get-domain", map[string]any{"domain": name},
+func getDomain(
+	ctx context.Context, c *client.Client, name string,
+) (domainInfo, error) {
+	data, err := c.Request(
+		ctx, "get-domain", map[string]any{"domain": name},
 	)
 	if err != nil {
 		return domainInfo{}, err

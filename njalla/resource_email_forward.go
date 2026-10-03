@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 // emailForward is a `list-forwards` entry.
@@ -68,7 +68,7 @@ func resourceEmailForwardCreate(
 		"to":     to,
 	}
 
-	_, err := gonjalla.Request(config.Token, "add-forward", params)
+	_, err := config.Client.Request(ctx, "add-forward", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -87,7 +87,7 @@ func resourceEmailForwardRead(
 
 	var diags diag.Diagnostics
 
-	forwards, err := listForwards(config.Token, domain)
+	forwards, err := listForwards(ctx, config.Client, domain)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -114,7 +114,7 @@ func resourceEmailForwardDelete(
 		"to":     d.Get("to").(string),
 	}
 
-	_, err := gonjalla.Request(config.Token, "remove-forward", params)
+	_, err := config.Client.Request(ctx, "remove-forward", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -133,7 +133,7 @@ func resourceEmailForwardImport(
 
 	config := m.(*Config)
 
-	forwards, err := listForwards(config.Token, domain)
+	forwards, err := listForwards(ctx, config.Client, domain)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading email forwards for domain %s failed: %s",
@@ -171,9 +171,11 @@ func parseEmailForwardID(id string) (string, string, string, error) {
 	return parts[0], parts[1], parts[2], nil
 }
 
-func listForwards(token string, domain string) ([]emailForward, error) {
-	data, err := gonjalla.Request(
-		token, "list-forwards", map[string]any{"domain": domain},
+func listForwards(
+	ctx context.Context, c *client.Client, domain string,
+) ([]emailForward, error) {
+	data, err := c.Request(
+		ctx, "list-forwards", map[string]any{"domain": domain},
 	)
 	if err != nil {
 		return nil, err

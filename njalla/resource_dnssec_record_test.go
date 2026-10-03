@@ -1,6 +1,7 @@
 package njalla
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -127,7 +128,7 @@ func testAccCheckDNSSECRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		records, err := listDNSSEC(config.Token, domain)
+		records, err := listDNSSEC(context.Background(), config.Client, domain)
 		if err != nil {
 			return fmt.Errorf(
 				"Error fetching the DNSSEC records for domain %s: %s",
@@ -160,7 +161,7 @@ func testAccCheckDNSSECRecordExists(resource string) resource.TestCheckFunc {
 
 		config := testAccProvider.Meta().(*Config)
 		domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
-		records, err := listDNSSEC(config.Token, domain)
+		records, err := listDNSSEC(context.Background(), config.Client, domain)
 		if err != nil {
 			return fmt.Errorf(
 				"Error fetching the DNSSEC records for domain %s: %s",

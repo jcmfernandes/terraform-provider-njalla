@@ -1,6 +1,7 @@
 package njalla
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -147,7 +148,7 @@ func testAccCheckGlueRecordDestroy(s *terraform.State) error {
 		}
 
 		domain := rs.Primary.Attributes["domain"]
-		glue, err := listGlue(config.Token, domain)
+		glue, err := listGlue(context.Background(), config.Client, domain)
 		if err != nil {
 			return fmt.Errorf(
 				"Error fetching the glue records for domain %s: %s",
@@ -179,7 +180,7 @@ func testAccCheckGlueRecordExists(resource string) resource.TestCheckFunc {
 
 		config := testAccProvider.Meta().(*Config)
 		domain := rs.Primary.Attributes["domain"]
-		glue, err := listGlue(config.Token, domain)
+		glue, err := listGlue(context.Background(), config.Client, domain)
 		if err != nil {
 			return fmt.Errorf(
 				"Error fetching the glue records for domain %s: %s",

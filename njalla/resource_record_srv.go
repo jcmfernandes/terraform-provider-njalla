@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 func resourceRecordSRV() *schema.Resource {
@@ -37,13 +37,13 @@ func resourceRecordSRV() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				Description:  "TTL for the record.",
-				ValidateFunc: validation.IntInSlice(gonjalla.ValidTTL),
+				ValidateFunc: validation.IntInSlice(client.ValidTTL),
 			},
 			"priority": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				Description:  "Priority for the record.",
-				ValidateFunc: validation.IntInSlice(gonjalla.ValidPriority),
+				ValidateFunc: validation.IntInSlice(client.ValidPriority),
 			},
 			"weight": {
 				Type:         schema.TypeInt,
@@ -75,7 +75,7 @@ func resourceRecordSRVCreate(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	if err := createRecord(config.Token, "SRV", d); err != nil {
+	if err := createRecord(ctx, config.Client, "SRV", d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -91,7 +91,7 @@ func resourceRecordSRVRead(
 
 	var diags diag.Diagnostics
 
-	record, err := findRecord(config.Token, domain, d.Id())
+	record, err := findRecord(ctx, config.Client, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -110,7 +110,7 @@ func resourceRecordSRVUpdate(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	if err := updateRecord(config.Token, "SRV", d); err != nil {
+	if err := updateRecord(ctx, config.Client, "SRV", d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -124,7 +124,7 @@ func resourceRecordSRVDelete(
 
 	domain := d.Get("domain").(string)
 
-	err := gonjalla.RemoveRecord(config.Token, domain, d.Id())
+	err := config.Client.RemoveRecord(ctx, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -143,7 +143,7 @@ func resourceRecordSRVImport(
 
 	config := m.(*Config)
 
-	record, err := findRecord(config.Token, domain, id)
+	record, err := findRecord(ctx, config.Client, domain, id)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading records for domain %s failed: %s", domain, err.Error(),

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 // glueRecord is a `list-glue` entry.
@@ -68,7 +68,7 @@ func resourceGlueRecordCreate(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	_, err := gonjalla.Request(config.Token, "add-glue", glueParams(d))
+	_, err := config.Client.Request(ctx, "add-glue", glueParams(d))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -90,7 +90,7 @@ func resourceGlueRecordRead(
 
 	var diags diag.Diagnostics
 
-	glue, err := listGlue(config.Token, domain)
+	glue, err := listGlue(ctx, config.Client, domain)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -113,7 +113,7 @@ func resourceGlueRecordUpdate(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	_, err := gonjalla.Request(config.Token, "edit-glue", glueParams(d))
+	_, err := config.Client.Request(ctx, "edit-glue", glueParams(d))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -131,7 +131,7 @@ func resourceGlueRecordDelete(
 		"name":   d.Get("name").(string),
 	}
 
-	_, err := gonjalla.Request(config.Token, "remove-glue", params)
+	_, err := config.Client.Request(ctx, "remove-glue", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -150,7 +150,7 @@ func resourceGlueRecordImport(
 
 	config := m.(*Config)
 
-	glue, err := listGlue(config.Token, domain)
+	glue, err := listGlue(ctx, config.Client, domain)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading glue records for domain %s failed: %s",
@@ -184,9 +184,11 @@ func glueParams(d *schema.ResourceData) map[string]any {
 	}
 }
 
-func listGlue(token string, domain string) ([]glueRecord, error) {
-	data, err := gonjalla.Request(
-		token, "list-glue", map[string]any{"domain": domain},
+func listGlue(
+	ctx context.Context, c *client.Client, domain string,
+) ([]glueRecord, error) {
+	data, err := c.Request(
+		ctx, "list-glue", map[string]any{"domain": domain},
 	)
 	if err != nil {
 		return nil, err

@@ -3,7 +3,6 @@ module github.com/Sighery/terraform-provider-njalla
 go 1.27
 
 require (
-	github.com/Sighery/gonjalla v0.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 )

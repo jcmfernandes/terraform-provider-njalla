@@ -1,6 +1,7 @@
 package njalla
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -137,7 +138,9 @@ func testAccCheckRecordSVCBDestroy(s *terraform.State) error {
 			continue
 		}
 
-		record, err := findRecord(config.Token, domain, rs.Primary.ID)
+		record, err := findRecord(
+			context.Background(), config.Client, domain, rs.Primary.ID,
+		)
 		if err != nil {
 			return fmt.Errorf(
 				"Error fetching the records data for domain %s: %s",
@@ -168,7 +171,9 @@ func testAccCheckRecordSVCBExists(resource string) resource.TestCheckFunc {
 
 		config := testAccProvider.Meta().(*Config)
 		domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
-		record, err := findRecord(config.Token, domain, rs.Primary.ID)
+		record, err := findRecord(
+			context.Background(), config.Client, domain, rs.Primary.ID,
+		)
 		if err != nil {
 			return fmt.Errorf(
 				"Error fetching the records data for domain %s: %s",

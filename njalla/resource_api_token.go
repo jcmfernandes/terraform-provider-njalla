@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 // apiToken is a `list-tokens` entry.
@@ -121,17 +121,17 @@ func resourceAPITokenCreate(
 		params["acme"] = true
 	}
 
-	before, err := listTokens(config.Token)
+	before, err := listTokens(ctx, config.Client)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	_, err = gonjalla.Request(config.Token, "add-token", params)
+	_, err = config.Client.Request(ctx, "add-token", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	after, err := listTokens(config.Token)
+	after, err := listTokens(ctx, config.Client)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -154,7 +154,7 @@ func resourceAPITokenRead(
 
 	var diags diag.Diagnostics
 
-	tokens, err := listTokens(config.Token)
+	tokens, err := listTokens(ctx, config.Client)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -185,7 +185,7 @@ func resourceAPITokenUpdate(
 		params[key] = d.Get(key).(*schema.Set).List()
 	}
 
-	_, err := gonjalla.Request(config.Token, "edit-token", params)
+	_, err := config.Client.Request(ctx, "edit-token", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -202,7 +202,7 @@ func resourceAPITokenDelete(
 		"key": d.Get("key").(string),
 	}
 
-	_, err := gonjalla.Request(config.Token, "remove-token", params)
+	_, err := config.Client.Request(ctx, "remove-token", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -219,7 +219,7 @@ func resourceAPITokenImport(
 
 	config := m.(*Config)
 
-	tokens, err := listTokens(config.Token)
+	tokens, err := listTokens(ctx, config.Client)
 	if err != nil {
 		return nil, fmt.Errorf("Reading API tokens failed: %s", err.Error())
 	}
@@ -278,8 +278,8 @@ func newTokenKey(before []apiToken, after []apiToken) (string, error) {
 	return added[0], nil
 }
 
-func listTokens(token string) ([]apiToken, error) {
-	data, err := gonjalla.Request(token, "list-tokens", map[string]any{})
+func listTokens(ctx context.Context, c *client.Client) ([]apiToken, error) {
+	data, err := c.Request(ctx, "list-tokens", map[string]any{})
 	if err != nil {
 		return nil, err
 	}

@@ -2,11 +2,10 @@ package njalla
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/Sighery/gonjalla"
 )
 
 func dataSourceServerImages() *schema.Resource {
@@ -29,13 +28,22 @@ func dataSourceServerImagesRead(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	images, err := gonjalla.ListServerImages(config.Token)
+	data, err := config.Client.Request(
+		ctx, "list-server-images", map[string]any{},
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	var response struct {
+		Images []string `json:"images"`
+	}
+	if err := json.Unmarshal(data, &response); err != nil {
+		return diag.FromErr(err)
+	}
+
 	d.SetId("server_images")
-	d.Set("images", images)
+	d.Set("images", response.Images)
 
 	var diags diag.Diagnostics
 	return diags

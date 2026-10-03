@@ -1,6 +1,7 @@
 package njalla
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -104,7 +105,7 @@ func testAccCheckDomainExists(resource string) resource.TestCheckFunc {
 		}
 
 		config := testAccProvider.Meta().(*Config)
-		domains, err := listDomains(config.Token)
+		domains, err := listDomains(context.Background(), config.Client)
 		if err != nil {
 			return fmt.Errorf("Error fetching the domains: %s", err)
 		}

@@ -5,8 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/Sighery/gonjalla"
 )
 
 func dataSourceServers() *schema.Resource {
@@ -51,7 +49,7 @@ func dataSourceServersRead(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	servers, err := gonjalla.ListServers(config.Token)
+	servers, err := config.Client.ListServers(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}

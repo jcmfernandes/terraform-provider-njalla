@@ -19,7 +19,7 @@ resource njalla_record_svcb example-svcb {
 * `domain` - (Required) Specifies the domain this record will be applied to.
 * `name` - (Optional) Name for the record. Default is `@`.
 * `priority` - (Required) Priority for the record. Value must be one of
-  [gonjalla's `ValidPriority`][gonjalla variable ValidPriority].
+  `0`, `1`, `5`, `10`, `20`, `30`, `40`, `50` or `60`.
 * `target` - (Required) Target name for the record.
 
 ~> **Note** Changing the `domain` attribute forces the existing resource to be
@@ -28,5 +28,3 @@ deleted from the previous domain, and created into the new domain.
 ## Attributes Reference
 
 * `id` - Njalla ID for this record.
-
-[gonjalla variable ValidPriority]: https://pkg.go.dev/github.com/Sighery/gonjalla?tab=doc#pkg-variables

@@ -1,6 +1,7 @@
 package njalla
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -62,7 +63,7 @@ func testAccCheckVPNDestroy(s *terraform.State) error {
 			continue
 		}
 
-		vpns, err := listVPNs(config.Token)
+		vpns, err := listVPNs(context.Background(), config.Client)
 		if err != nil {
 			return fmt.Errorf("Error fetching the VPNs: %s", err)
 		}
@@ -88,7 +89,7 @@ func testAccCheckVPNExists(resource string) resource.TestCheckFunc {
 		}
 
 		config := testAccProvider.Meta().(*Config)
-		vpns, err := listVPNs(config.Token)
+		vpns, err := listVPNs(context.Background(), config.Client)
 		if err != nil {
 			return fmt.Errorf("Error fetching the VPNs: %s", err)
 		}

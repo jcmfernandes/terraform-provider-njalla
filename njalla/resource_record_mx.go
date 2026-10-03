@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 func resourceRecordMX() *schema.Resource {
@@ -37,13 +37,13 @@ func resourceRecordMX() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				Description:  "TTL for the record.",
-				ValidateFunc: validation.IntInSlice(gonjalla.ValidTTL),
+				ValidateFunc: validation.IntInSlice(client.ValidTTL),
 			},
 			"priority": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				Description:  "Priority for the record.",
-				ValidateFunc: validation.IntInSlice(gonjalla.ValidPriority),
+				ValidateFunc: validation.IntInSlice(client.ValidPriority),
 			},
 			"content": {
 				Type:        schema.TypeString,
@@ -66,7 +66,7 @@ func resourceRecordMXCreate(
 	domain := d.Get("domain").(string)
 	priority := d.Get("priority").(int)
 
-	record := gonjalla.Record{
+	record := client.Record{
 		Type:     "MX",
 		Name:     d.Get("name").(string),
 		Content:  d.Get("content").(string),
@@ -74,7 +74,7 @@ func resourceRecordMXCreate(
 		Priority: &priority,
 	}
 
-	saved, err := gonjalla.AddRecord(config.Token, domain, record)
+	saved, err := config.Client.AddRecord(ctx, domain, record)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -94,7 +94,7 @@ func resourceRecordMXRead(
 
 	var diags diag.Diagnostics
 
-	records, err := gonjalla.ListRecords(config.Token, domain)
+	records, err := config.Client.ListRecords(ctx, domain)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -122,7 +122,7 @@ func resourceRecordMXUpdate(
 	domain := d.Get("domain").(string)
 	priority := d.Get("priority").(int)
 
-	updateRecord := gonjalla.Record{
+	updateRecord := client.Record{
 		ID:       d.Id(),
 		Name:     d.Get("name").(string),
 		Type:     "MX",
@@ -131,7 +131,7 @@ func resourceRecordMXUpdate(
 		Priority: &priority,
 	}
 
-	err := gonjalla.EditRecord(config.Token, domain, updateRecord)
+	err := config.Client.EditRecord(ctx, domain, updateRecord)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -146,7 +146,7 @@ func resourceRecordMXDelete(
 
 	domain := d.Get("domain").(string)
 
-	err := gonjalla.RemoveRecord(config.Token, domain, d.Id())
+	err := config.Client.RemoveRecord(ctx, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -165,7 +165,7 @@ func resourceRecordMXImport(
 
 	config := m.(*Config)
 
-	records, err := gonjalla.ListRecords(config.Token, domain)
+	records, err := config.Client.ListRecords(ctx, domain)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading records for domain %s failed: %s", domain, err.Error(),

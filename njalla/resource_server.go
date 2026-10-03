@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 // Changing `os` replaces the server rather than calling reset-server, so
@@ -115,12 +115,12 @@ func resourceServerCreate(
 		"autorenew": d.Get("autorenew").(bool),
 	}
 
-	data, err := gonjalla.Request(config.Token, "add-server", params)
+	data, err := config.Client.Request(ctx, "add-server", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	var saved gonjalla.Server
+	var saved client.Server
 	if err := json.Unmarshal(data, &saved); err != nil {
 		return diag.FromErr(err)
 	}
@@ -132,7 +132,7 @@ func resourceServerCreate(
 	var diags diag.Diagnostics
 	if v, ok := d.GetOk("reverse_name"); ok {
 		edit := map[string]any{"id": saved.ID, "reverse_name": v}
-		_, err := gonjalla.Request(config.Token, "edit-server", edit)
+		_, err := config.Client.Request(ctx, "edit-server", edit)
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
@@ -154,7 +154,7 @@ func resourceServerRead(
 
 	var diags diag.Diagnostics
 
-	exists, err := serverExists(config.Token, d.Id())
+	exists, err := serverExists(ctx, config.Client, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -164,14 +164,14 @@ func resourceServerRead(
 		return diags
 	}
 
-	data, err := gonjalla.Request(
-		config.Token, "get-server", map[string]any{"id": d.Id()},
+	data, err := config.Client.Request(
+		ctx, "get-server", map[string]any{"id": d.Id()},
 	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	var server gonjalla.Server
+	var server client.Server
 	if err := json.Unmarshal(data, &server); err != nil {
 		return diag.FromErr(err)
 	}
@@ -205,7 +205,7 @@ func resourceServerUpdate(
 		}
 	}
 
-	_, err := gonjalla.Request(config.Token, "edit-server", params)
+	_, err := config.Client.Request(ctx, "edit-server", params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -218,15 +218,22 @@ func resourceServerDelete(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	_, err := gonjalla.RemoveServer(config.Token, d.Id())
+	data, err := config.Client.Request(
+		ctx, "remove-server", map[string]any{"id": d.Id()},
+	)
 	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	var removed client.Server
+	if err := json.Unmarshal(data, &removed); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// remove-server returns a task; wait until the server is gone.
 	timeout := d.Timeout(schema.TimeoutDelete)
 	err = retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		exists, err := serverExists(config.Token, d.Id())
+		exists, err := serverExists(ctx, config.Client, d.Id())
 		if err != nil {
 			return retry.NonRetryableError(err)
 		}
@@ -245,8 +252,10 @@ func resourceServerDelete(
 	return diags
 }
 
-func serverExists(token string, id string) (bool, error) {
-	servers, err := gonjalla.ListServers(token)
+func serverExists(
+	ctx context.Context, c *client.Client, id string,
+) (bool, error) {
+	servers, err := c.ListServers(ctx)
 	if err != nil {
 		return false, err
 	}

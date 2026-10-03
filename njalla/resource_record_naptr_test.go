@@ -1,6 +1,7 @@
 package njalla
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -8,8 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-
-	"github.com/Sighery/gonjalla"
 )
 
 func TestAccRecordNAPTR_Create(t *testing.T) {
@@ -248,7 +247,7 @@ func testAccCheckRecordNAPTRDestroy(s *terraform.State) error {
 			continue
 		}
 
-		records, err := gonjalla.ListRecords(config.Token, domain)
+		records, err := config.Client.ListRecords(context.Background(), domain)
 		if err != nil {
 			return fmt.Errorf(
 				"Error fetching the records data for domain %s: %s",
@@ -281,7 +280,7 @@ func testAccCheckRecordNAPTRExists(resource string) resource.TestCheckFunc {
 
 		config := testAccProvider.Meta().(*Config)
 		domain := os.Getenv("NJALLA_TESTACC_DOMAIN")
-		records, err := gonjalla.ListRecords(config.Token, domain)
+		records, err := config.Client.ListRecords(context.Background(), domain)
 		if err != nil {
 			return fmt.Errorf(
 				"Error fetching the records data for domain %s: %s",

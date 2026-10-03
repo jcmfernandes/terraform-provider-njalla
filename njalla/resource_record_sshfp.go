@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/Sighery/gonjalla"
+	"github.com/Sighery/terraform-provider-njalla/internal/client"
 )
 
 func resourceRecordSSHFP() *schema.Resource {
@@ -37,7 +37,7 @@ func resourceRecordSSHFP() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				Description:  "TTL for the record.",
-				ValidateFunc: validation.IntInSlice(gonjalla.ValidTTL),
+				ValidateFunc: validation.IntInSlice(client.ValidTTL),
 			},
 			"ssh_algorithm": {
 				Type:         schema.TypeInt,
@@ -69,7 +69,7 @@ func resourceRecordSSHFPCreate(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	if err := createRecord(config.Token, "SSHFP", d); err != nil {
+	if err := createRecord(ctx, config.Client, "SSHFP", d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -85,7 +85,7 @@ func resourceRecordSSHFPRead(
 
 	var diags diag.Diagnostics
 
-	record, err := findRecord(config.Token, domain, d.Id())
+	record, err := findRecord(ctx, config.Client, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -104,7 +104,7 @@ func resourceRecordSSHFPUpdate(
 ) diag.Diagnostics {
 	config := m.(*Config)
 
-	if err := updateRecord(config.Token, "SSHFP", d); err != nil {
+	if err := updateRecord(ctx, config.Client, "SSHFP", d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -118,7 +118,7 @@ func resourceRecordSSHFPDelete(
 
 	domain := d.Get("domain").(string)
 
-	err := gonjalla.RemoveRecord(config.Token, domain, d.Id())
+	err := config.Client.RemoveRecord(ctx, domain, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -137,7 +137,7 @@ func resourceRecordSSHFPImport(
 
 	config := m.(*Config)
 
-	record, err := findRecord(config.Token, domain, id)
+	record, err := findRecord(ctx, config.Client, domain, id)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"Reading records for domain %s failed: %s", domain, err.Error(),
