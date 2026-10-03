@@ -73,10 +73,13 @@ $ export NJALLA_API_TOKEN='my-api-token'
 
 ## Limitations
 
-This provider only offers as much as it is implemented in the [gonjalla][]
-package. That means only _some_ DNS resources are implemented. And most other
-operations by the API are not implemented.
+The provider covers DNS records, domains, glue and DNSSEC records, email
+forwards, API tokens, servers and VPNs. It doesn't cover renewals, server
+start/stop/restart, extra server traffic, `Redirect` and `Static` records,
+or the API's user and wallet calls.
+
+!> **Warning** `njalla_domain`, `njalla_server` and `njalla_vpn` charge your
+Njalla wallet when created.
 
 [Njalla]: https://njal.la
 [Njalla API]: https://njal.la/api/
-[gonjalla]: https://github.com/Sighery/gonjalla

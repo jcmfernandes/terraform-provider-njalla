@@ -36,6 +36,13 @@ func Provider() *schema.Provider {
 			"njalla_record_svcb":    resourceRecordSVCB(),
 			"njalla_record_sshfp":   resourceRecordSSHFP(),
 			"njalla_record_ds":      resourceRecordDS(),
+			"njalla_domain":         resourceDomain(),
+			"njalla_glue_record":    resourceGlueRecord(),
+			"njalla_dnssec_record":  resourceDNSSECRecord(),
+			"njalla_email_forward":  resourceEmailForward(),
+			"njalla_api_token":      resourceAPIToken(),
+			"njalla_server":         resourceServer(),
+			"njalla_vpn":            resourceVPN(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

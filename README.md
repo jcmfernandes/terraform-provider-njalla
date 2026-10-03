@@ -117,6 +117,15 @@ export NJALLA_TESTACC_DOMAIN="testdomain.com"
 TF_ACC=true go test -v ./...
 ```
 
+Two more environment variables opt into tests that are skipped by default:
+
+* `NJALLA_TESTACC_PAID`: Run tests that cost money. They register a random
+  `.com` domain (which can't be deleted afterwards), and buy a server and a
+  VPN.
+* `NJALLA_TESTACC_DNSSEC`: Run tests that publish made-up DNSSEC records for
+  `NJALLA_TESTACC_DOMAIN`. A record left behind by a failed run breaks
+  resolution of the domain.
+
 [mise][] pins Go, OpenTofu and GoReleaser in `mise.toml`, and wraps the above
 as tasks: `mise run build`, `mise run test`, `mise run testacc`.
 
