@@ -130,7 +130,7 @@ func TestRequestContextCancelled(t *testing.T) {
 	}
 }
 
-// AddRecord must send exactly the params gonjalla.AddRecord used to.
+// AddRecord sends the record's fields, without an id.
 func TestAddRecordParams(t *testing.T) {
 	var gotBody struct {
 		Params map[string]any `json:"params"`
@@ -156,7 +156,6 @@ func TestAddRecordParams(t *testing.T) {
 
 	want := map[string]any{
 		"domain":  "a.b",
-		"id":      "",
 		"name":    "@",
 		"type":    "MX",
 		"content": "mx.a.b",

@@ -48,16 +48,18 @@ func (c *Client) ListRecords(
 }
 
 // contentParams builds add-record/edit-record params from the fields the
-// content-based types use: `id`, `name`, `type`, `content`, `ttl` and, if
-// set, `prio`. `id` is always sent, even when empty.
+// content-based types use: `name`, `type`, `content`, `ttl` and, if set,
+// `id` and `prio`.
 func contentParams(domain string, record Record) map[string]any {
 	params := map[string]any{
 		"domain":  domain,
-		"id":      record.ID,
 		"name":    record.Name,
 		"type":    record.Type,
 		"content": record.Content,
 		"ttl":     record.TTL,
+	}
+	if record.ID != "" {
+		params["id"] = record.ID
 	}
 	if record.Priority != nil {
 		params["prio"] = *record.Priority
