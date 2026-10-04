@@ -87,6 +87,64 @@ func TestRequestHTTPError(t *testing.T) {
 	}
 }
 
+func TestRequestRetriesBusy(t *testing.T) {
+	for _, status := range []int{
+		http.StatusTooManyRequests, http.StatusServiceUnavailable,
+	} {
+		calls := 0
+		c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+			calls++
+			if calls < 3 {
+				http.Error(w, "busy", status)
+				return
+			}
+			w.Write([]byte(`{"result": {"id": "42"}}`))
+		})
+		c.RetryWait = time.Millisecond
+
+		data, err := c.Request(context.Background(), "list-domains", nil)
+		if err != nil || string(data) != `{"id": "42"}` {
+			t.Errorf("status %d: data = %s, err = %v", status, data, err)
+		}
+		if calls != 3 {
+			t.Errorf("status %d: calls = %d, want 3", status, calls)
+		}
+	}
+}
+
+func TestRequestRetriesGiveUp(t *testing.T) {
+	calls := 0
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		http.Error(w, "busy", http.StatusServiceUnavailable)
+	})
+	c.RetryWait = time.Millisecond
+
+	_, err := c.Request(context.Background(), "list-domains", nil)
+	if err == nil ||
+		err.Error() != "Njalla API returned HTTP 503 Service Unavailable" {
+		t.Errorf("err = %v", err)
+	}
+	if calls != c.MaxRetries+1 {
+		t.Errorf("calls = %d, want %d", calls, c.MaxRetries+1)
+	}
+}
+
+func TestRequestRetryWaitCancelled(t *testing.T) {
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "busy", http.StatusServiceUnavailable)
+	})
+	c.RetryWait = time.Hour
+
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(50*time.Millisecond, cancel)
+
+	_, err := c.Request(ctx, "list-domains", nil)
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("err = %v, want context.Canceled", err)
+	}
+}
+
 func TestRequestMissingResult(t *testing.T) {
 	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"jsonrpc": "2.0"}`))

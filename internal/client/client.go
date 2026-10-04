@@ -17,12 +17,21 @@ const DefaultEndpoint = "https://njal.la/api/1/"
 // DefaultTimeout bounds a single API call.
 const DefaultTimeout = 60 * time.Second
 
+// DefaultMaxRetries and DefaultRetryWait bound retries of busy responses.
+// The wait doubles after each retry: 1s, 2s, 4s, 8s, 16s.
+const (
+	DefaultMaxRetries = 5
+	DefaultRetryWait  = time.Second
+)
+
 // Client sends requests to Njalla's API. Endpoint and HTTPClient can be
 // overridden, e.g. to point at an httptest server.
 type Client struct {
 	Token      string
 	Endpoint   string
 	HTTPClient *http.Client
+	MaxRetries int
+	RetryWait  time.Duration
 }
 
 // New returns a Client for the given API token.
@@ -31,6 +40,8 @@ func New(token string) *Client {
 		Token:      token,
 		Endpoint:   DefaultEndpoint,
 		HTTPClient: &http.Client{Timeout: DefaultTimeout},
+		MaxRetries: DefaultMaxRetries,
+		RetryWait:  DefaultRetryWait,
 	}
 }
 
@@ -56,23 +67,28 @@ func (c *Client) Request(
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(
-		ctx, http.MethodPost, c.Endpoint, bytes.NewReader(body),
-	)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Njalla "+c.Token)
+	// Njalla answers 429 or 503 when it's busy, e.g. when tofu refreshes
+	// many records at once.
+	var resp *http.Response
+	var data []byte
+	wait := c.RetryWait
+	for attempt := 0; ; attempt++ {
+		resp, data, err = c.post(ctx, body)
+		if err != nil {
+			return nil, err
+		}
+		busy := resp.StatusCode == http.StatusTooManyRequests ||
+			resp.StatusCode == http.StatusServiceUnavailable
+		if !busy || attempt == c.MaxRetries {
+			break
+		}
 
-	resp, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(wait):
+		}
+		wait *= 2
 	}
 
 	var response map[string]json.RawMessage
@@ -99,4 +115,29 @@ func (c *Client) Request(
 	}
 
 	return nil, fmt.Errorf("Missing result %s", data)
+}
+
+// post sends one request and reads the whole response body.
+func (c *Client) post(
+	ctx context.Context, body []byte,
+) (*http.Response, []byte, error) {
+	req, err := http.NewRequestWithContext(
+		ctx, http.MethodPost, c.Endpoint, bytes.NewReader(body),
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+	req.Header.Set("Authorization", "Njalla "+c.Token)
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer resp.Body.Close()
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+	return resp, data, nil
 }
